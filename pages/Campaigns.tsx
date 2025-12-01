@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/Layout';
 import { Campaign, Client } from '../types';
 import { getCampaigns, getClients } from '../services/dataService';
 import { GlassCard, GlassButton, Badge } from '../components/ui/Glass';

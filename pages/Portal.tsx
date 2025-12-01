@@ -1,7 +1,5 @@
-
-
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../components/Layout';
 import { getClients, loginAsClient, updateClient } from '../services/dataService';
 import { Client } from '../types';
 import { GlassCard, GlassButton, Badge, GlassInput, Toggle } from '../components/ui/Glass';

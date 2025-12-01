@@ -1,13 +1,18 @@
 
+
+
+
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from '../components/Layout';
 import { 
     ArrowRight, BarChart3, Shield, Zap, CheckCircle2, Globe, LayoutDashboard, 
     ChevronRight, Play, Users, DollarSign, TrendingUp, MoreHorizontal, 
     Workflow, Code2, Mail, XCircle, ChevronDown, Check, 
     Briefcase, Utensils, Sparkles, Activity, MessageSquare, 
     Bell, AlertCircle, Lock, Wrench, Car, ShoppingBag, Server, Flag, Database, Key,
-    Linkedin, Instagram, Sheet, FileText, Smartphone, Star
+    Linkedin, Instagram, Sheet, FileText, Smartphone, Star, CreditCard,
+    Dumbbell, Stethoscope, Home, Scissors, Hammer, Layers
 } from 'lucide-react';
 import { GlassButton, GlassCard, Badge } from '../components/ui/Glass';
 import { AreaChart, Area, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
@@ -19,7 +24,7 @@ import { WorkspaceSettings } from '../types';
 const SlackLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
     <svg className={className} viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
         <path fill="#E01E5A" d="M29.6 22.8c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v13.2H42.8c-7.3 0-13.2-5.9-13.2-13.2zm17.6 13.2c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h13.2v13.2z"/>
-        <path fill="#36C5F0" d="M29.6 84.4c-7.3 0-13.2 5.9-13.2 13.2 0 7.3 5.9 13.2 13.2 13.2 7.3 0 13.2-5.9 13.2-13.2V84.4H29.6zm13.2-17.6c-7.3 0-13.2 5.9-13.2 13.2 0 7.3 5.9 13.2 13.2 13.2V66.8h-13.2c7.3 0 13.2-5.9 13.2-13.2 0-7.3-5.9-13.2-13.2-13.2H42.8z"/>
+        <path fill="#36C5F0" d="M29.6 84.4c-7.3 0-13.2 5.9-13.2 13.2 0 7.3 5.9 13.2 13.2 13.2 7.3 0 13.2-5.9 13.2-13.2V84.4H29.6zm13.2-17.6c-7.3 0-13.2 5.9-13.2 13.2 0 7.3 5.9 13.2 13.2 13.2 13.2V66.8h-13.2c7.3 0 13.2-5.9 13.2-13.2 0-7.3-5.9-13.2-13.2-13.2H42.8z"/>
         <path fill="#2EB67D" d="M84.4 84.4c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V84.4h13.2zm-17.6-13.2c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H66.8v-13.2z"/>
         <path fill="#ECB22E" d="M84.4 22.8c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v13.2H84.4c-7.3 0-13.2-5.9-13.2-13.2zm-13.2 17.6c7.3 0 13.2-5.9 13.2-13.2 0-7.3-5.9-13.2-13.2v13.2h13.2c-7.3 0-13.2 5.9-13.2 13.2 0 7.3 5.9 13.2 13.2 13.2H71.2z"/>
     </svg>
@@ -52,47 +57,27 @@ const useScrollReveal = (threshold = 0.05) => {
   return [ref, isVisible] as const;
 };
 
-const CountUp = ({ end, duration = 2000, prefix = '', suffix = '' }: { end: number, duration?: number, prefix?: string, suffix?: string }) => {
-    const [count, setCount] = useState(0);
-    const [ref, isVisible] = useScrollReveal();
-
-    useEffect(() => {
-        if (!isVisible) return;
-        let start = 0;
-        const increment = end / (duration / 16); 
-        const timer = setInterval(() => {
-            start += increment;
-            if (start >= end) {
-                setCount(end);
-                clearInterval(timer);
-            } else {
-                setCount(start);
-            }
-        }, 16);
-        return () => clearInterval(timer);
-    }, [end, duration, isVisible]);
-
-    return <span ref={ref}>{prefix}{Math.floor(count).toLocaleString()}{suffix}</span>;
-};
-
 const SectionSeparator = () => (
     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent z-10" />
 );
 
 // --- COMPONENTS ---
 
-const ReviewCard = ({ name, role, company, image, text }: { name: string, role: string, company: string, image: string, text: string }) => (
-    <div className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 backdrop-blur-md shadow-xl hover:bg-zinc-900 hover:border-white/10 transition-all duration-300 group hover:-translate-y-1 cursor-default">
-        <div className="flex gap-1 mb-4">
-            {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-amber-500 fill-amber-500" />)}
-        </div>
-        <p className="text-zinc-300 text-sm leading-relaxed mb-6">"{text}"</p>
-        <div className="flex items-center gap-3">
-            <img src={image} alt={name} className="w-10 h-10 rounded-full object-cover border border-white/10" />
-            <div>
-                <div className="text-sm font-bold text-white">{name}</div>
-                <div className="text-xs text-zinc-500">{role}, {company}</div>
+const VerticalCard = ({ icon: Icon, title, description, delay }: { icon: any, title: string, description: string, delay: string }) => (
+    <div 
+        className="relative p-6 rounded-2xl bg-zinc-900/50 border border-white/5 backdrop-blur-md shadow-2xl group hover:-translate-y-2 transition-all duration-500"
+        style={{ animationDelay: delay }}
+    >
+        {/* Glow Gradient on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+        
+        <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center mb-4 group-hover:bg-primary-500/10 group-hover:border-primary-500/20 transition-colors">
+                <Icon className="w-7 h-7 text-zinc-300 group-hover:text-primary-500 transition-colors" />
             </div>
+            
+            <h3 className="text-white font-bold text-lg mb-2">{title}</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed">{description}</p>
         </div>
     </div>
 );
@@ -116,7 +101,7 @@ const SlackNotificationCard = () => (
                         <div className="text-zinc-300 text-sm leading-relaxed">
                             🚀 <span className="font-semibold text-white">New High-Value Lead!</span> <br/>
                             <span className="text-zinc-400">Campaign:</span> Summer Promo <br/>
-                            <span className="text-zinc-400">Value:</span> $5,000
+                            <span className="text-zinc-400">Status:</span> 🚨 Needs Call
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                             <button className="px-3 py-1 bg-transparent border border-zinc-600 hover:bg-zinc-700 text-green-400 text-sm font-semibold rounded-[4px] transition-colors">
@@ -159,16 +144,16 @@ const MockPipeline = () => (
                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">New</span>
             </div>
             <div className="animate-[pulse_4s_infinite]">
-                <MockKanbanCard title="Acme Corp" value="$12k" stage="New" color="bg-blue-500/20 text-blue-400" />
+                <MockKanbanCard title="John Doe" value="Interested" stage="New" color="bg-blue-500/20 text-blue-400" />
             </div>
-            <MockKanbanCard title="Stark Ind" value="$45k" stage="New" color="bg-blue-500/20 text-blue-400" />
+            <MockKanbanCard title="Sarah Smith" value="Quote Req" stage="New" color="bg-blue-500/20 text-blue-400" />
         </div>
          <div className="space-y-3 pt-8">
             <div className="flex items-center gap-2 pb-2 border-b border-white/5">
                 <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Call</span>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Appt</span>
             </div>
-            <MockKanbanCard title="Wayne Ent" value="$85k" stage="Call" color="bg-purple-500/20 text-purple-400" />
+            <MockKanbanCard title="Mike Ross" value="$1.5k" stage="Booked" color="bg-purple-500/20 text-purple-400" />
         </div>
          <div className="space-y-3 pt-4">
             <div className="flex items-center gap-2 pb-2 border-b border-white/5">
@@ -176,42 +161,11 @@ const MockPipeline = () => (
                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Won</span>
             </div>
             <div className="animate-[float_5s_ease-in-out_infinite]">
-                <MockKanbanCard title="Cyberdyne" value="$120k" stage="Won" color="bg-green-500/20 text-green-400" />
+                <MockKanbanCard title="Emily Blunt" value="$5k" stage="Won" color="bg-green-500/20 text-green-400" />
             </div>
         </div>
     </div>
 );
-
-const MockChart = () => {
-    const data = [{v: 4000}, {v: 3000}, {v: 5500}, {v: 8000}, {v: 6000}, {v: 9500}, {v: 12000}];
-    return (
-        <div className="w-full h-full p-6 bg-zinc-900/80 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl flex flex-col hover:border-white/20 transition-colors relative overflow-hidden">
-            <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] pointer-events-none" />
-            <div className="flex justify-between items-center mb-6 relative z-10">
-                <div>
-                    <div className="text-xs text-zinc-500 uppercase font-bold tracking-wider mb-1">Total Revenue</div>
-                    <div className="text-3xl font-bold text-white tracking-tight"><CountUp end={45231} prefix="$" /></div>
-                </div>
-                <div className="text-green-400 text-xs font-bold bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" /> +24.5%
-                </div>
-            </div>
-            <div className="flex-1 min-h-0 relative z-10">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
-                        <defs>
-                            <linearGradient id="colorV" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#14b8a6" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <Area type="monotone" dataKey="v" stroke="#14b8a6" strokeWidth={3} fillOpacity={1} fill="url(#colorV)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-    )
-}
 
 const FaqItem = ({ question, answer }: { question: string, answer: string }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -239,6 +193,8 @@ const FaqItem = ({ question, answer }: { question: string, answer: string }) => 
 
 export const LandingPage = () => {
   const [settings, setSettings] = useState<WorkspaceSettings | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+  const navigate = useNavigate();
   
   // Animation Refs
   const [heroRef, heroVisible] = useScrollReveal();
@@ -250,7 +206,7 @@ export const LandingPage = () => {
   const [methodRef, methodVisible] = useScrollReveal(0.1);
   const [integrationsRef, integrationsVisible] = useScrollReveal(0.1);
   const [metaRef, metaVisible] = useScrollReveal(0.1);
-  const [reviewsRef, reviewsVisible] = useScrollReveal(0.1);
+  const [verticalsRef, verticalsVisible] = useScrollReveal(0.1);
   const [pricingRef, pricingVisible] = useScrollReveal(0.1);
   const [privacyRef, privacyVisible] = useScrollReveal(0.1);
   const [faqRef, faqVisible] = useScrollReveal(0.1);
@@ -264,6 +220,15 @@ export const LandingPage = () => {
         <Globe className="w-[60%] h-[60%] text-black stroke-[1.5]" />
     </div>
   );
+
+  // Pricing Calculations
+  const SOLO_PRICE = billingCycle === 'yearly' ? 29 : 35;
+  const AGENCY_PRICE = billingCycle === 'yearly' ? 65 : 78;
+  
+  // Explicitly navigate to auth
+  const handleCtaClick = () => {
+      navigate('/auth');
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-primary-500/30 overflow-x-hidden font-sans">
@@ -281,11 +246,12 @@ export const LandingPage = () => {
                 <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
                 <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
             </div>
-            <Link to="/dashboard">
-                <GlassButton className="shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 border-primary-500/50 bg-primary-500 hover:bg-primary-400 text-white">
-                    Launch App <ArrowRight className="w-4 h-4 ml-2" />
-                </GlassButton>
-            </Link>
+            <GlassButton 
+                onClick={handleCtaClick}
+                className="shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 border-primary-500/50 bg-primary-500 hover:bg-primary-400 text-white"
+            >
+                Start Free Trial <ArrowRight className="w-4 h-4 ml-2" />
+            </GlassButton>
           </div>
         </div>
       </nav>
@@ -302,44 +268,46 @@ export const LandingPage = () => {
         <div className="max-w-5xl mx-auto text-center space-y-8" ref={heroRef}>
             <div className={`transition-all duration-1000 transform ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 
-                {/* Badges */}
-                <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                    <span className="px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2 shadow-lg backdrop-blur-md">
-                        <CheckCircle2 className="w-3 h-3 text-primary-500"/> Mobile-First
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2 shadow-lg backdrop-blur-md">
-                        <Zap className="w-3 h-3 text-blue-500"/> Direct Meta Sync
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-[10px] font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2 shadow-lg backdrop-blur-md">
-                        <Shield className="w-3 h-3 text-purple-500"/> White-Label
-                    </span>
-                </div>
-                
+                {/* Headline */}
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] text-white drop-shadow-2xl">
                     The Performance CRM for <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-teal-200 to-purple-400 animate-gradient-x">Real Revenue.</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-teal-200 to-purple-400 animate-gradient-x">Real Local Revenue.</span>
                 </h1>
                 
-                <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4">
-                    Leads are not the goal. Revenue is. <br/>
-                    LeadTS turns marketing results into business results — by ensuring every lead gets worked, tracked, and closed.
+                <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed pt-4 font-medium">
+                    Leads are not the goal. Appointments & Sales are.<br/>
+                    <span className="text-zinc-500 font-normal">LeadTS turns marketing results into business results — by making sure every lead gets contacted, booked, and closed.</span>
                 </p>
 
+                {/* Vertical Ticker */}
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <span className="text-sm font-semibold text-white mr-2">👉 Designed for Local Service Sales:</span>
+                    {['Fitness', 'Beauty', 'Clinics', 'Auto', 'Trades', 'Real Estate', 'Repair'].map(v => (
+                        <span key={v} className="px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-[11px] font-bold text-zinc-400 uppercase tracking-wide">
+                            {v}
+                        </span>
+                    ))}
+                </div>
+
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
-                    <Link to="/dashboard">
-                        <button className="px-10 py-4 rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-bold text-lg transition-all shadow-[0_0_40px_-10px_rgba(20,184,166,0.5)] hover:shadow-[0_0_60px_-15px_rgba(20,184,166,0.6)] hover:-translate-y-1 flex items-center gap-2 border border-primary-400 relative overflow-hidden group">
-                            <span className="relative z-10 flex items-center gap-2">Start Free Trial <ChevronRight className="w-5 h-5" /></span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                        </button>
-                    </Link>
-                    <button className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg transition-all flex items-center gap-2 group backdrop-blur-md">
+                    <button 
+                        onClick={handleCtaClick}
+                        className="px-10 py-4 rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-bold text-lg transition-all shadow-[0_0_40px_-10px_rgba(20,184,166,0.5)] hover:shadow-[0_0_60px_-15px_rgba(20,184,166,0.6)] hover:-translate-y-1 flex items-center gap-2 border border-primary-400 relative overflow-hidden group"
+                    >
+                        <span className="relative z-10 flex items-center gap-2">Start Free Trial <ChevronRight className="w-5 h-5" /></span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    </button>
+                    <button 
+                        onClick={handleCtaClick}
+                        className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg transition-all flex items-center gap-2 group backdrop-blur-md"
+                    >
                         <Play className="w-5 h-5 fill-white group-hover:scale-110 transition-transform" /> Watch Live Demo
                     </button>
                 </div>
                 
                 <div className="flex items-center justify-center gap-6 pt-6 text-xs text-zinc-500 font-medium uppercase tracking-wide">
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-zinc-600"/> No credit card required</span>
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-zinc-600"/> Live in minutes</span>
+                    <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-primary-500"/> No credit card required</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-primary-500"/> Live in minutes</span>
                 </div>
             </div>
         </div>
@@ -359,12 +327,12 @@ export const LandingPage = () => {
                              <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"/>
                              <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"/>
                          </div>
-                         <div className="bg-zinc-900 border border-white/5 px-3 py-1 rounded text-[10px] text-zinc-500 font-mono">app.leadts.com</div>
+                         <div className="bg-zinc-900 border border-white/5 px-3 py-1 rounded text-[10px] text-zinc-500 font-mono">Live Performance Dashboard</div>
                      </div>
                      <div className="col-span-1 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                          {[
                              { label: 'Total Revenue', val: '$45,231', col: 'text-white' },
-                             { label: 'Leads', val: '142', col: 'text-white' },
+                             { label: 'Booked Appointments', val: '142', col: 'text-white' },
                              { label: 'Sales', val: '18', col: 'text-green-400' },
                              { label: 'ROAS', val: '4.2x', col: 'text-primary-400' },
                          ].map((s, i) => (
@@ -388,7 +356,7 @@ export const LandingPage = () => {
                          </ResponsiveContainer>
                      </div>
                      <div className="col-span-1 h-64 bg-zinc-900/50 rounded-xl border border-white/5 p-4 space-y-3">
-                         <div className="text-xs font-bold text-zinc-500 uppercase">Activity</div>
+                         <div className="text-xs font-bold text-zinc-500 uppercase">Live Activity</div>
                          {[1,2,3,4].map(i => (
                              <div key={i} className="flex items-center gap-3">
                                  <div className="w-8 h-8 rounded-full bg-zinc-800" />
@@ -400,9 +368,7 @@ export const LandingPage = () => {
 
                 {/* Overlay CTA */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <Link to="/dashboard">
-                    <GlassButton className="scale-125 shadow-2xl">Enter Live Demo</GlassButton>
-                    </Link>
+                    <GlassButton onClick={handleCtaClick} className="scale-125 shadow-2xl">Enter Live Demo</GlassButton>
                 </div>
             </div>
             
@@ -417,7 +383,7 @@ export const LandingPage = () => {
           <div className={`max-w-6xl mx-auto transition-all duration-1000 ${comparisonVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               <div className="text-center mb-16">
                   <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Why LeadTS?</h2>
-                  <p className="text-zinc-400 max-w-2xl mx-auto">LeadTS makes your clients better — so you keep clients longer.</p>
+                  <p className="text-zinc-400 max-w-2xl mx-auto text-lg">Your ads work. Your clients just don’t always follow up. We fix that.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -428,10 +394,10 @@ export const LandingPage = () => {
                           <h3 className="text-xl font-bold text-white">Without LeadTS</h3>
                       </div>
                       <ul className="space-y-4 text-zinc-400">
-                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Leads land in email inboxes & get lost</li>
-                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Customers forget to call → You take the blame</li>
-                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> No revenue visibility, only vanity metrics</li>
-                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Low trust → High churn</li>
+                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Leads lost in email inboxes</li>
+                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Clients forget to call → you take the blame</li>
+                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> “We got clicks… what now?”</li>
+                          <li className="flex items-start gap-3"><XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 opacity-70" /> Churn because clients don’t see value</li>
                       </ul>
                   </GlassCard>
 
@@ -442,12 +408,16 @@ export const LandingPage = () => {
                           <h3 className="text-xl font-bold text-white">With LeadTS</h3>
                       </div>
                       <ul className="space-y-4 text-zinc-300">
-                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Leads instantly in one clean pipeline</li>
-                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Every lead status tracked → nothing falls through</li>
-                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Sales metrics that prove your value</li>
-                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Clients see you deliver → you keep the contract</li>
+                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Leads delivered directly into a clean pipeline</li>
+                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Instant follow-up alerts → clients take action</li>
+                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> Revenue clarity for every campaign</li>
+                          <li className="flex items-start gap-3"><Check className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" /> High retention → High margins</li>
                       </ul>
                   </GlassCard>
+              </div>
+              
+              <div className="text-center mt-12 text-zinc-300 font-medium">
+                  LeadTS makes your clients close more deals → so you keep clients longer.
               </div>
           </div>
       </section>
@@ -460,19 +430,17 @@ export const LandingPage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                     <LayoutDashboard className="w-6 h-6 text-blue-500" />
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold">Deal pipelines built for people who hate CRMs.</h2>
+                <h2 className="text-3xl md:text-5xl font-bold">Pipelines built for sales — not for CRM nerds.</h2>
                 <p className="text-lg text-zinc-400 leading-relaxed">
-                    Stop losing leads in messy tables. Drag-and-drop deals through customizable stages and see your revenue update in real time.
+                    Drag new leads into Appointment and watch revenue projections update instantly.
                 </p>
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="p-3 rounded-lg bg-zinc-900 border border-white/5">
-                        <CheckCircle2 className="w-5 h-5 text-blue-500 mb-2" />
-                        <div className="font-bold text-white text-sm">Drag & Drop</div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-zinc-900 border border-white/5">
-                        <CheckCircle2 className="w-5 h-5 text-blue-500 mb-2" />
-                        <div className="font-bold text-white text-sm">Instant Calculations</div>
-                    </div>
+                <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-blue-500" /> Custom stages & colors</div>
+                    <div className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-blue-500" /> Revenue per stage</div>
+                    <div className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-blue-500" /> Zero training required</div>
+                </div>
+                <div className="pt-4 text-blue-400 font-bold flex items-center gap-2">
+                    → Because local teams want fast. Not complicated.
                 </div>
             </div>
             <div className="relative group perspective-1000">
@@ -516,23 +484,22 @@ export const LandingPage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
                     <Shield className="w-6 h-6 text-purple-500" />
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold">Transparency that makes you irreplaceable.</h2>
+                <h2 className="text-3xl md:text-5xl font-bold">Transparency that Wins Trust</h2>
                 <p className="text-lg text-zinc-400 leading-relaxed">
-                    Clients log in — see their leads & performance — and understand your value instantly. Build trust → build retention → build revenue.
+                    Clients get their own login. They see leads. They see wins. They understand your value instantly.
                 </p>
                 <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> Custom branding & domain</li>
-                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> Show what matters — hide what doesn’t</li>
-                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> Every update in real-time</li>
+                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> White-label branding & custom domain</li>
+                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> Show only the metrics that matter</li>
+                    <li className="flex items-center gap-3 text-zinc-300"><CheckCircle2 className="w-5 h-5 text-purple-500" /> Everything updates live while they work</li>
                 </ul>
             </div>
         </div>
       </section>
 
-      {/* --- NEW: SLACK ACCOUNTABILITY --- */}
+      {/* --- FEATURE: SLACK --- */}
       <section className="py-32 px-6 border-t border-white/5 bg-zinc-950 relative overflow-hidden" ref={slackRef}>
           <SectionSeparator />
-          {/* Subtle Grid Background */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
           
           <div className={`max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center transition-all duration-1000 relative z-10 ${slackVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -540,27 +507,32 @@ export const LandingPage = () => {
                   <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
                       <MessageSquare className="w-6 h-6 text-green-500" />
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-bold">Stop hoping clients follow up. Make sure they do.</h2>
+                  <h2 className="text-3xl md:text-5xl font-bold">Stop hoping they follow up. Make it happen.</h2>
                   <p className="text-lg text-zinc-400 leading-relaxed">
-                      LeadTS sends instant alerts via Slack so your clients respond immediately. No more lost leads in email inboxes.
+                      Slack alerts turn leads into conversations right now.
                   </p>
                   
                   <div className="space-y-4">
                       <div className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
                           <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-white/10 group-hover:border-green-500/30 transition-colors"><Bell className="w-5 h-5 text-zinc-400 group-hover:text-green-400"/></div>
                           <div>
-                              <h4 className="font-bold text-white group-hover:text-green-400 transition-colors">Instant Alerts</h4>
-                              <p className="text-sm text-zinc-400">Leads hit Slack the second they sign up.</p>
+                              <h4 className="font-bold text-white group-hover:text-green-400 transition-colors">Instant new lead pings</h4>
                           </div>
                       </div>
                       <div className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
                           <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-white/10 group-hover:border-rose-500/30 transition-colors"><AlertCircle className="w-5 h-5 text-zinc-400 group-hover:text-rose-400"/></div>
                           <div>
-                              <h4 className="font-bold text-white group-hover:text-rose-400 transition-colors">Follow-up Reminders</h4>
-                              <p className="text-sm text-zinc-400">Automated nudges if a lead sits in "New" too long.</p>
+                              <h4 className="font-bold text-white group-hover:text-rose-400 transition-colors">Follow-up reminders if untouched</h4>
+                          </div>
+                      </div>
+                      <div className="flex gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
+                          <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-white/10 group-hover:border-blue-500/30 transition-colors"><Smartphone className="w-5 h-5 text-zinc-400 group-hover:text-blue-400"/></div>
+                          <div>
+                              <h4 className="font-bold text-white group-hover:text-blue-400 transition-colors">One tap → “Call Now”</h4>
                           </div>
                       </div>
                   </div>
+                  <div className="font-bold text-green-400 pt-2">More speed = More appointments = More sales</div>
               </div>
 
               <div className="relative flex justify-center order-1 md:order-2 perspective-1000">
@@ -572,12 +544,11 @@ export const LandingPage = () => {
           </div>
       </section>
 
-      {/* --- NEW: METHODOLOGY (3-Step How It Works) --- */}
+      {/* --- METHODOLOGY (3-Step How It Works) --- */}
       <section id="how-it-works" className="py-32 px-6 border-t border-white/5 bg-zinc-950" ref={methodRef}>
           <div className={`max-w-4xl mx-auto transition-all duration-1000 ${methodVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
               <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">How it works</h2>
-                  <p className="text-zinc-400">The proven system to convert traffic into revenue.</p>
+                  <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">How it works — The Revenue Machine</h2>
               </div>
 
               <div className="space-y-12 relative">
@@ -588,19 +559,19 @@ export const LandingPage = () => {
                       { 
                           icon: <Workflow className="w-6 h-6 text-blue-400"/>, 
                           title: "1. Centralize", 
-                          text: "Leads flow in from Meta, Webforms, or Webhooks instantly.",
+                          text: "All leads flow into LeadTS from Meta, Funnels, Webhooks",
                           bg: "bg-blue-500/10", border: "border-blue-500/20"
                       },
                       { 
                           icon: <MessageSquare className="w-6 h-6 text-green-400"/>, 
                           title: "2. Accountability", 
-                          text: "Slack keeps clients accountable to act fast. No more 'I didn't see it'.",
+                          text: "Slack ensures lightning-fast follow-ups",
                           bg: "bg-green-500/10", border: "border-green-500/20"
                       },
                       { 
                           icon: <TrendingUp className="w-6 h-6 text-purple-400"/>, 
                           title: "3. Optimize", 
-                          text: "You optimize campaigns based on real revenue, not just clicks.",
+                          text: "You scale campaigns based on offline revenue, not vanity metrics",
                           bg: "bg-purple-500/10", border: "border-purple-500/20"
                       }
                   ].map((step, i) => (
@@ -627,39 +598,23 @@ export const LandingPage = () => {
                       <Workflow className="w-6 h-6 text-amber-500" />
                   </div>
                   <h2 className="text-3xl md:text-5xl font-bold leading-tight">Connect anything.<br/>Manage everything.</h2>
-                  <p className="text-lg text-zinc-400 leading-relaxed">LeadTS ingests leads from any source via webhook: Meta Lead Ads, Webflow, WordPress, Shopify, Typeform & more.</p>
+                  <p className="text-lg text-zinc-400 leading-relaxed">
+                      LeadTS ingests leads from:
+                      <br/>
+                      Meta Lead Ads, Webflow, WordPress, Shopify, Typeform, Webhook sources.
+                  </p>
                   
-                  <div className="bg-zinc-900 rounded-2xl border border-white/10 p-6 relative overflow-hidden group hover:border-primary-500/30 transition-colors">
-                      <div className="absolute top-0 right-0 p-2 opacity-10"><Code2 className="w-20 h-20" /></div>
-                      <h4 className="font-bold text-white mb-4 flex items-center gap-2"><Zap className="w-4 h-4 text-amber-500" /> Smart Mapping Engine</h4>
-                      <div className="flex items-center gap-4 text-xs font-mono">
-                          <div className="flex-1 bg-black/40 p-3 rounded-lg border border-white/5 text-zinc-500">
-                              <div className="mb-1 text-red-400">{"{"}</div>
-                              <div className="pl-2"><span className="text-blue-300">"q3_email"</span>: <span className="text-amber-200">"s@gmail.com"</span></div>
-                              <div className="text-red-400">{"}"}</div>
-                          </div>
-                          <div className="text-zinc-600 animate-pulse"><ArrowRight className="w-5 h-5" /></div>
-                          <div className="flex-1 bg-primary-900/10 p-3 rounded-lg border border-primary-500/20 text-white relative">
-                              <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-0.5 border-2 border-zinc-900"><CheckCircle2 className="w-3 h-3 text-white"/></div>
-                              <div className="mb-1 text-zinc-400 font-sans font-bold uppercase text-[10px]">CRM Lead</div>
-                              <div className="flex items-center gap-2"><Globe className="w-3 h-3 text-blue-400"/> s@gmail.com</div>
-                          </div>
-                      </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-amber-500/30 rounded-xl text-amber-400 text-sm font-bold shadow-xl shadow-amber-900/10">
+                        <Zap className="w-4 h-4 text-amber-500" /> Future-proof: No Zapier required.
                   </div>
               </div>
 
-              <div className="relative h-[500px] flex items-center justify-center order-1 lg:order-2 perspective-1000">
-                  {/* Orbit Rings - 3D Effect */}
-                  <div className="absolute w-[450px] h-[450px] rounded-full border border-white/5 animate-[spin-slow_25s_linear_infinite]" style={{ transformStyle: 'preserve-3d', transform: 'rotateX(60deg)' }} />
-                  <div className="absolute w-[350px] h-[350px] rounded-full border border-white/5 animate-[spin-slow_20s_linear_infinite_reverse]" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(60deg)' }} />
-                  <div className="absolute w-[250px] h-[250px] rounded-full border border-white/5 animate-[spin-slow_15s_linear_infinite]" />
-
-                  {/* Core */}
+              <div className="relative h-[400px] flex items-center justify-center order-1 lg:order-2 perspective-1000">
+                  <div className="absolute w-[350px] h-[350px] rounded-full border border-white/5 animate-[spin-slow_20s_linear_infinite_reverse]" />
                   <div className="relative z-20 w-24 h-24 bg-zinc-900 rounded-full border-4 border-zinc-800 shadow-[0_0_50px_rgba(20,184,166,0.3)] flex items-center justify-center">
                       <Globe className="w-10 h-10 text-primary-500 animate-pulse" />
                   </div>
-
-                  {/* Orbiting Icons (Swarm) */}
+                  {/* Icons */}
                   {[
                       { Icon: LayoutDashboard, color: 'text-blue-400', label: 'Webflow', delay: '0s', orbit: 'orbit-1' },
                       { Icon: ShoppingBag, color: 'text-green-400', label: 'Shopify', delay: '-5s', orbit: 'orbit-2' },
@@ -667,8 +622,6 @@ export const LandingPage = () => {
                       { Icon: FileText, color: 'text-zinc-200', label: 'Typeform', delay: '-8s', orbit: 'orbit-1' },
                       { Icon: Sheet, color: 'text-green-500', label: 'Excel', delay: '-12s', orbit: 'orbit-2' },
                       { Icon: Instagram, color: 'text-pink-500', label: 'IG', delay: '-15s', orbit: 'orbit-3' },
-                      { Icon: Mail, color: 'text-yellow-500', label: 'Email', delay: '-3s', orbit: 'orbit-2' },
-                      { Icon: Smartphone, color: 'text-purple-400', label: 'SMS', delay: '-9s', orbit: 'orbit-1' },
                   ].map((item, i) => (
                       <div 
                         key={i}
@@ -680,19 +633,6 @@ export const LandingPage = () => {
                       >
                           <item.Icon className={`w-6 h-6 ${item.color}`} />
                       </div>
-                  ))}
-
-                  {/* Data Packets */}
-                  {[1,2,3,4,5,6].map(i => (
-                      <div 
-                        key={i} 
-                        className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-primary-400 rounded-full shadow-[0_0_10px_#2dd4bf] z-0" 
-                        style={{ 
-                            animation: `packet-flow 3s ease-in infinite`, 
-                            animationDelay: `${i * 0.5}s`, 
-                            transformOrigin: '0 0' 
-                        }} 
-                      />
                   ))}
               </div>
           </div>
@@ -707,98 +647,46 @@ export const LandingPage = () => {
                     <Zap className="w-4 h-4 fill-blue-500" /> Meta Conversion API
                  </div>
                  <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight">
-                    Feed the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Algorithm</span>.
+                    Feed the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Algorithm</span> — automatically.
                  </h2>
                  <p className="text-lg text-zinc-400 leading-relaxed">
-                    LeadTS sends server-side sales signals back to Meta to improve campaign performance. Bidirectional sync = Better results with less spend.
+                    Server-side revenue + appointment signals sent back to Meta.
                  </p>
-             </div>
-             
-             {/* Data Flow Animation */}
-             <div className="relative py-16">
-                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-24">
-                     
-                     {/* Meta Node */}
-                     <div className="relative z-10 p-6 bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center gap-4 w-48">
-                        <div className="w-16 h-16 rounded-full bg-[#0668E1] flex items-center justify-center shadow-lg shadow-blue-600/30">
-                            <MetaLogo className="w-8 h-8 text-white" />
-                        </div>
-                        <div className="font-bold text-zinc-200">Meta Ads</div>
-                     </div>
-
-                     {/* Connection Lines */}
-                     <div className="relative w-full md:w-64 h-24 md:h-2 flex items-center justify-center">
-                         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-primary-500/20 rounded-full" />
-                         
-                         {/* Leads -> CRM */}
-                         <div className="absolute w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6] animate-[moveRight_2s_linear_infinite]" style={{ top: '50%', transform: 'translateY(-50%)' }} />
-                         
-                         {/* Events -> Meta */}
-                         <div className="absolute w-3 h-3 bg-green-400 rounded-full shadow-[0_0_15px_#4ade80] animate-[moveLeft_2s_linear_infinite]" style={{ top: '50%', transform: 'translateY(-50%)', animationDelay: '1s' }} />
-                         
-                         <div className="absolute -top-8 text-[10px] font-mono text-zinc-500 uppercase tracking-widest bg-black/50 px-2 py-1 rounded backdrop-blur">Bidirectional Sync</div>
-                     </div>
-
-                     {/* LeadTS Node */}
-                     <div className="relative z-10 p-6 bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center gap-4 w-48 border-t-4 border-t-primary-500">
-                        <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center relative"><div className="absolute inset-0 bg-primary-500/20 animate-pulse rounded-full" /><Globe className="w-8 h-8 text-primary-500" /></div>
-                        <div className="font-bold text-zinc-200">LeadTS CRM</div>
-                     </div>
+                 <div className="flex flex-wrap justify-center gap-4 text-sm font-medium text-zinc-300">
+                     <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400"/> Better targeting</span>
+                     <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400"/> Cheaper leads</span>
+                     <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400"/> Higher quality demand</span>
                  </div>
-                 
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-24 md:mt-28">
-                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-green-500/30 rounded-xl text-green-400 text-xs font-mono font-bold shadow-xl shadow-green-900/10">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> SERVER-SIDE TRACKING ACTIVE
-                     </div>
-                 </div>
+                 <div className="text-blue-400 font-bold tracking-wide uppercase text-sm pt-2">Bidirectional sync = performance loop unlocked</div>
              </div>
           </div>
       </section>
 
-      {/* --- NEW: REVIEWS (Added Back) --- */}
-      <section className="py-32 px-6 border-t border-white/5 bg-zinc-950 relative overflow-hidden" ref={reviewsRef}>
+      {/* --- VERTICALS / BUILT FOR LOCAL BUSINESS --- */}
+      <section className="py-32 px-6 border-t border-white/5 bg-zinc-950 relative overflow-hidden" ref={verticalsRef}>
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary-500/20 to-transparent" />
           
-          <div className={`max-w-7xl mx-auto transition-all duration-1000 ${reviewsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+          <div className={`max-w-7xl mx-auto transition-all duration-1000 ${verticalsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
               <div className="text-center mb-16 space-y-4">
-                  <h2 className="text-3xl md:text-5xl font-bold text-white">Trusted by High-Performers</h2>
-                  <p className="text-zinc-400 max-w-2xl mx-auto">Agencies and local businesses use LeadTS to stop guessing and start scaling.</p>
+                  <h2 className="text-3xl md:text-5xl font-bold text-white">Built for Local Business Revenue</h2>
+                  <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
+                      Not SaaS leads. Not E-Commerce. Not theory.<br/>
+                      Real offline revenue. Real customers.
+                  </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <ReviewCard 
-                    name="Alex Hormozi" 
-                    role="Founder" 
-                    company="GymLaunch" 
-                    image="https://ui-avatars.com/api/?name=Alex+Hormozi&background=random" 
-                    text="Finally a CRM that focuses on what matters: Revenue. My clients actually use this because it's simple and the Slack alerts are a game changer."
-                  />
-                  <ReviewCard 
-                    name="Sarah Jenkins" 
-                    role="Owner" 
-                    company="Prestige Auto" 
-                    image="https://ui-avatars.com/api/?name=Sarah+Jenkins&background=random" 
-                    text="We used to lose leads in email chains. Now my sales team gets a Slack ping, calls instantly, and we track every dollar. ROI went up 3x."
-                  />
-                  <ReviewCard 
-                    name="Marcus Weber" 
-                    role="CEO" 
-                    company="Weber Media" 
-                    image="https://ui-avatars.com/api/?name=Marcus+Weber&background=random" 
-                    text="The white-label portal makes us look like a million-dollar agency. Clients log in, see their leads, and stop asking 'where is my money going?'."
-                  />
-                  <ReviewCard 
-                    name="Elena Rodriguez" 
-                    role="Marketing Dir." 
-                    company="Smile Dental" 
-                    image="https://ui-avatars.com/api/?name=Elena+Rodriguez&background=random" 
-                    text="Direct Meta sync + Server-side tracking meant our ad targeting got smarter within weeks. Lead quality improved significantly."
-                  />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  <VerticalCard icon={Dumbbell} title="Gyms" description="& Personal Training" delay="0s" />
+                  <VerticalCard icon={Stethoscope} title="Clinics" description="& Dentists" delay="0.1s" />
+                  <VerticalCard icon={Scissors} title="Beauty" description="& Aesthetics" delay="0.2s" />
+                  <VerticalCard icon={Car} title="Auto" description="Sales & Repair" delay="0.3s" />
+                  <VerticalCard icon={Hammer} title="Trades" description="Roofing, Plumbing" delay="0.4s" />
+                  <VerticalCard icon={Home} title="Real Estate" description="& Construction" delay="0.5s" />
               </div>
           </div>
       </section>
 
-      {/* --- NEW: PRIVACY & SECURITY --- */}
+      {/* --- SECURITY --- */}
       <section className="py-24 px-6 border-t border-white/5 bg-zinc-950 relative overflow-hidden" ref={privacyRef}>
          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-800/20 via-zinc-950 to-zinc-950 pointer-events-none" />
          
@@ -806,42 +694,35 @@ export const LandingPage = () => {
             <div className="text-center mb-16">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-400 mb-4 shadow-lg">
                   <Shield className="w-3 h-3 text-green-500" />
-                  <span>Enterprise Grade Protection</span>
+                  <span>Made in Germany 🇩🇪 | GDPR as a core feature</span>
                </div>
-               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Uncompromising Security.<br/>Made in Germany.</h2>
-               <p className="text-zinc-400 max-w-2xl mx-auto">
-                  Your data privacy is not a feature, it's our foundation. We host strictly on ISO-certified servers in Frankfurt.
-               </p>
+               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Enterprise-Grade Security</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               {/* Card 1 */}
-               <GlassCard className="p-8 flex flex-col items-center text-center gap-4 hover:bg-zinc-900/80 transition-colors border-zinc-800">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center border border-white/5 text-white shadow-inner">
-                     <Server className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white">Hosted in Frankfurt</h3>
-                  <p className="text-sm text-zinc-400">Data never leaves Germany. Hosted on high-performance, carbon-neutral AWS Frankfurt servers.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+               <GlassCard className="p-6 text-center hover:bg-zinc-900/80 transition-colors border-zinc-800">
+                  <Server className="w-8 h-8 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="font-bold text-white mb-2">Hosted in Frankfurt</h3>
+                  <p className="text-xs text-zinc-500">Data never leaves DE/EU</p>
                </GlassCard>
-               
-               {/* Card 2 */}
-               <GlassCard className="p-8 flex flex-col items-center text-center gap-4 hover:bg-zinc-900/80 transition-colors border-zinc-800">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center border border-white/5 text-white shadow-inner">
-                     <Database className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white">100% GDPR Compliant</h3>
-                  <p className="text-sm text-zinc-400">Built with privacy by design. Full data processing agreements (AVV) available for all agency plans.</p>
+               <GlassCard className="p-6 text-center hover:bg-zinc-900/80 transition-colors border-zinc-800">
+                  <Key className="w-8 h-8 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="font-bold text-white mb-2">Bank-level encryption</h3>
+                  <p className="text-xs text-zinc-500">Secure at rest & transit</p>
                </GlassCard>
-
-               {/* Card 3 */}
-               <GlassCard className="p-8 flex flex-col items-center text-center gap-4 hover:bg-zinc-900/80 transition-colors border-zinc-800">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center border border-white/5 text-white shadow-inner">
-                     <Key className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white">Bank-Level Encryption</h3>
-                  <p className="text-sm text-zinc-400">AES-256 encryption at rest and TLS 1.3 in transit. Your client data is locked tight.</p>
+               <GlassCard className="p-6 text-center hover:bg-zinc-900/80 transition-colors border-zinc-800">
+                  <FileText className="w-8 h-8 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="font-bold text-white mb-2">Full AVV contracts</h3>
+                  <p className="text-xs text-zinc-500">Ready for agencies</p>
+               </GlassCard>
+               <GlassCard className="p-6 text-center hover:bg-zinc-900/80 transition-colors border-zinc-800">
+                  <Shield className="w-8 h-8 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="font-bold text-white mb-2">Zero-trust architecture</h3>
+                  <p className="text-xs text-zinc-500">Maximum protection</p>
                </GlassCard>
             </div>
+            
+            <div className="text-center mt-12 text-zinc-400 font-medium">Your clients sleep well → so do you.</div>
          </div>
       </section>
 
@@ -852,6 +733,20 @@ export const LandingPage = () => {
             <div className="text-center mb-16 space-y-4">
                 <h2 className="text-4xl md:text-5xl font-bold text-white">Simple. Transparent. Scalable.</h2>
                 <p className="text-xl text-zinc-400">Choose the plan that fits your business stage.</p>
+                
+                {/* Billing Toggle */}
+                <div className="flex items-center justify-center gap-4 pt-4">
+                    <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-white' : 'text-zinc-500'}`}>Monthly</span>
+                    <button 
+                        onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+                        className="relative w-14 h-7 bg-zinc-800 rounded-full border border-white/10 transition-colors focus:outline-none"
+                    >
+                        <div className={`absolute top-1 left-1 w-5 h-5 bg-primary-500 rounded-full transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : ''}`} />
+                    </button>
+                    <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-white' : 'text-zinc-500'}`}>
+                        Yearly <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-bold uppercase">Save 20%</span>
+                    </span>
+                </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -862,42 +757,42 @@ export const LandingPage = () => {
                     <div className="relative p-10 bg-zinc-900 rounded-[2.5rem] border border-white/10 h-full flex flex-col hover:border-zinc-500/30 transition-colors">
                         <div className="mb-6">
                             <Badge color="zinc"><span className="px-2 uppercase tracking-wider text-xs font-bold">Local Business Edition</span></Badge>
-                            <h3 className="text-3xl font-bold text-white mt-4">Solo Version</h3>
-                            <p className="text-zinc-400 text-sm mt-2">Perfect for owners managing their own leads.</p>
+                            <h3 className="text-3xl font-bold text-white mt-4">Solo</h3>
+                            <p className="text-zinc-400 text-sm mt-2">Perfect for business owners managing leads themselves.</p>
                         </div>
                         
                         <div className="mb-8">
                             <div className="flex items-baseline gap-1">
-                                <span className="text-5xl font-bold text-white">€29</span>
+                                <span className="text-5xl font-bold text-white">€{SOLO_PRICE}</span>
                                 <span className="text-zinc-500 font-medium">/mo</span>
                             </div>
-                            <p className="text-xs text-zinc-500 mt-2">Pause or cancel anytime.</p>
+                            <p className="text-xs text-zinc-500 mt-2">Cancel anytime.</p>
                         </div>
 
                         <div className="space-y-4 flex-1 border-t border-white/5 pt-8">
                             <div className="flex items-center gap-3 text-zinc-300">
-                                <div className="p-1 rounded-full bg-zinc-800 text-white"><Users className="w-3 h-3" /></div>
-                                <span className="font-medium">1 Admin User</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-zinc-300">
                                 <div className="p-1 rounded-full bg-zinc-800 text-white"><CheckCircle2 className="w-3 h-3" /></div>
-                                <span className="font-medium">Unlimited Leads</span>
+                                <span className="font-medium">Unlimited leads</span>
                             </div>
                             <div className="flex items-center gap-3 text-zinc-300">
                                 <div className="p-1 rounded-full bg-zinc-800 text-white"><Zap className="w-3 h-3" /></div>
                                 <span className="font-medium">Direct Meta Sync</span>
                             </div>
-                            <div className="flex items-center gap-3 text-zinc-500 line-through decoration-zinc-600 opacity-50">
-                                <div className="p-1 rounded-full bg-zinc-800/50"><Lock className="w-3 h-3" /></div>
-                                <span className="font-medium">White-Label Portal</span>
+                            <div className="flex items-center gap-3 text-zinc-300">
+                                <div className="p-1 rounded-full bg-zinc-800 text-white"><Shield className="w-3 h-3" /></div>
+                                <span className="font-medium">White-Label Client Portal</span>
                             </div>
                         </div>
 
-                        <Link to="/dashboard" className="mt-8">
-                            <button className="w-full py-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-sm border border-white/10 transition-all hover:scale-[1.02]">
-                                Get Started
+                        <div className="mt-8">
+                            <button 
+                                onClick={handleCtaClick}
+                                className="w-full py-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-sm border border-white/10 transition-all hover:scale-[1.02]"
+                            >
+                                Start 14-Day Free Trial
                             </button>
-                        </Link>
+                            <p className="text-[10px] text-zinc-500 mt-3 text-center">No credit card required.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -909,44 +804,62 @@ export const LandingPage = () => {
                         <div className="mb-6">
                             <Badge color="primary"><span className="px-2 uppercase tracking-wider text-xs font-bold">Most Popular</span></Badge>
                             <h3 className="text-3xl font-bold text-white mt-4">Agency Starter</h3>
-                            <p className="text-zinc-400 text-sm mt-2">Manage leads together with your clients.</p>
+                            <p className="text-zinc-400 text-sm mt-2">For agencies managing leads with clients.</p>
                         </div>
                         
                         <div className="mb-8">
                             <div className="flex items-baseline gap-1">
-                                <span className="text-5xl font-bold text-white">€65</span>
+                                <span className="text-5xl font-bold text-white">€{AGENCY_PRICE}</span>
                                 <span className="text-zinc-500 font-medium">/mo</span>
                             </div>
-                            <div className="text-xs text-primary-400 bg-primary-500/10 px-3 py-1.5 rounded-full inline-block font-medium mt-3 border border-primary-500/20">
-                                Just €13.00 per client slot
+                            <div className="flex items-center gap-2 mt-3">
+                                <div className="text-xs text-primary-400 bg-primary-500/10 px-3 py-1.5 rounded-full inline-block font-bold border border-primary-500/20">
+                                    5 Client Slots included
+                                </div>
+                                <div className="text-xs text-zinc-400">
+                                    Just €13 per client.
+                                </div>
                             </div>
                         </div>
 
                         <div className="space-y-4 flex-1 border-t border-white/5 pt-8">
                              <div className="flex items-center gap-3 text-white">
                                 <div className="p-1 rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30"><CheckCircle2 className="w-3 h-3" /></div>
-                                <span className="font-bold">5 Client Slots Included</span>
-                            </div>
-                             <div className="flex items-center gap-3 text-zinc-300">
-                                <div className="p-1 rounded-full bg-primary-500/20 text-primary-500"><CheckCircle2 className="w-3 h-3" /></div>
-                                <span className="font-medium">Unlimited Leads & Campaigns</span>
+                                <span className="font-bold">Unlimited Leads & Campaigns</span>
                             </div>
                              <div className="flex items-center gap-3 text-zinc-300">
                                 <div className="p-1 rounded-full bg-primary-500/20 text-primary-500"><Shield className="w-3 h-3" /></div>
-                                <span className="font-medium">Full White-Label Branding</span>
+                                <span className="font-medium">White-Label Client Portal</span>
                             </div>
                              <div className="flex items-center gap-3 text-zinc-300">
-                                <div className="p-1 rounded-full bg-primary-500/20 text-primary-500"><Users className="w-3 h-3" /></div>
-                                <span className="font-medium">Mobile Client Portals</span>
+                                <div className="p-1 rounded-full bg-primary-500/20 text-primary-500"><MessageSquare className="w-3 h-3" /></div>
+                                <span className="font-medium">Slack Follow-up Alerts</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-zinc-300">
+                                <div className="p-1 rounded-full bg-primary-500/20 text-primary-500"><BarChart3 className="w-3 h-3" /></div>
+                                <span className="font-medium">Revenue & ROAS Dashboard</span>
                             </div>
                         </div>
 
-                        <Link to="/dashboard" className="mt-8">
-                            <button className="w-full py-4 rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-bold text-lg shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-1 hover:shadow-primary-500/40">
-                                Start Agency Trial
+                        <div className="mt-8 space-y-3">
+                            <button 
+                                onClick={handleCtaClick}
+                                className="w-full py-4 rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-bold text-lg shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-1 hover:shadow-primary-500/40 relative overflow-hidden group"
+                            >
+                                <span className="relative z-10">Start 14-Day Free Trial</span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             </button>
-                        </Link>
-                        <p className="text-[10px] text-zinc-500 mt-4 text-center">14-day money-back guarantee.</p>
+                            <p className="text-[10px] text-zinc-500 text-center flex items-center justify-center gap-1.5">
+                                <CreditCard className="w-3 h-3"/> No credit card required.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-dashed border-white/10 text-center">
+                            <p className="text-xs text-zinc-400">
+                                Need more? <span className="text-white font-semibold">Scale up for just €10/client.</span>
+                                <br/>Turn them into profit centers.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -959,12 +872,11 @@ export const LandingPage = () => {
           <div className={`max-w-3xl mx-auto transition-all duration-1000 ${faqVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               <h2 className="text-3xl font-bold text-white mb-10 text-center">Frequently Asked Questions</h2>
               <div className="space-y-2">
-                  <FaqItem question="How fast can I get started?" answer="In minutes. Connect Meta → leads flow instantly. We built LeadTS for speed." />
-                  <FaqItem question="Do my clients need training?" answer="No. They already know how to use a phone. We built LeadTS for the real world, not for tech teams." />
-                  <FaqItem question="How do I track revenue and results?" answer="Full visibility into leads, calls, appointments & sales. No more 'We called them all' stories." />
-                  <FaqItem question="What if my client doesn’t follow up?" answer="You see exactly what happens via the pipeline and Slack alerts. Accountability = retention." />
-                  <FaqItem question="Do you integrate with other tools?" answer="Yes. LeadTS works on its own but is forever extendable with Webhooks and APIs." />
-                  <FaqItem question="Is this white-label?" answer="Yes. Your brand, your story, your client success. They see your logo, not ours." />
+                  <FaqItem question="How fast can I get started?" answer="Live and connected to Meta in under 10 minutes." />
+                  <FaqItem question="Do my clients need training?" answer="No. 3 buttons. Drag and drop. That’s it." />
+                  <FaqItem question="How do I prove revenue?" answer="Track appointments + sales per lead → ROAS and ROI calculated automatically." />
+                  <FaqItem question="What if my client doesn’t follow up?" answer="Slack alerts and reminders make sure they do." />
+                  <FaqItem question="Is this white-label?" answer="100%. Your logo. Your brand. Your domain." />
               </div>
           </div>
       </section>
@@ -977,11 +889,16 @@ export const LandingPage = () => {
             <Zap className="w-16 h-16 text-primary-400 mx-auto fill-primary-400/20" />
             <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight">You bring the leads. <br/> We make sure they become business.</h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-                 <Link to="/dashboard"><button className="px-12 py-5 rounded-2xl bg-white text-zinc-950 font-bold text-xl hover:bg-zinc-200 transition-colors shadow-xl hover:scale-105 transform duration-200">Start Free</button></Link>
+                 <button 
+                    onClick={handleCtaClick}
+                    className="px-12 py-5 rounded-2xl bg-white text-zinc-950 font-bold text-xl hover:bg-zinc-200 transition-colors shadow-xl hover:scale-105 transform duration-200"
+                 >
+                    Start Free
+                 </button>
                  <button className="px-12 py-5 rounded-2xl bg-transparent border border-white/10 text-white font-bold text-xl hover:bg-white/5 transition-colors flex items-center justify-center gap-2"><Play className="w-5 h-5"/> Watch Demo</button>
             </div>
             <div className="flex items-center justify-center gap-8 pt-8 text-sm text-zinc-500 font-medium">
-                <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-primary-500"/> No credit card required</span>
+                <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-primary-500"/> No credit card needed</span>
                 <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-primary-500"/> Live in minutes</span>
             </div>
         </div>
@@ -1001,36 +918,14 @@ export const LandingPage = () => {
                   <div className="flex gap-4">{['Twitter', 'GitHub', 'LinkedIn'].map(social => (<a key={social} href="#" className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-primary-500/50 transition-all"><span className="sr-only">{social}</span><div className="w-4 h-4 bg-current rounded-sm" /></a>))}</div>
               </div>
               <div><h4 className="font-bold text-white mb-6">Product</h4><ul className="space-y-4 text-sm text-zinc-400"><li><a href="#features" className="hover:text-primary-400 transition-colors">Features</a></li><li><a href="#method" className="hover:text-primary-400 transition-colors">Methodology</a></li><li><a href="#pricing" className="hover:text-primary-400 transition-colors">Pricing</a></li></ul></div>
-              <div><h4 className="font-bold text-white mb-6">Company</h4><ul className="space-y-4 text-sm text-zinc-400"><li><a href="#" className="hover:text-primary-400 transition-colors">About</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Contact</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Privacy</a></li></ul></div>
-              <div>
-                  <h4 className="font-bold text-white mb-6">Stay Updated</h4>
-                  <p className="text-xs text-zinc-500 mb-4">Join 2,000+ agency owners getting our weekly tips.</p>
-                  <div className="flex gap-2"><div className="relative flex-1"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" /><input type="email" placeholder="Enter email" className="bg-zinc-900 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500 w-full placeholder:text-zinc-600" /></div><button className="bg-primary-500 hover:bg-primary-400 text-white rounded-lg px-3 py-2 transition-colors"><ArrowRight className="w-4 h-4" /></button></div>
-              </div>
+              <div><h4 className="font-bold text-white mb-6">Company</h4><ul className="space-y-4 text-sm text-zinc-400"><li><a href="#" className="hover:text-primary-400 transition-colors">About</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Blog</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Careers</a></li></ul></div>
+              <div><h4 className="font-bold text-white mb-6">Legal</h4><ul className="space-y-4 text-sm text-zinc-400"><li><a href="#" className="hover:text-primary-400 transition-colors">Privacy</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Terms</a></li><li><a href="#" className="hover:text-primary-400 transition-colors">Imprint</a></li></ul></div>
           </div>
-          <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-500"><p>&copy; 2024 LeadTS Inc. All rights reserved.</p></div>
+          <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-500">
+              <p>&copy; 2024 LeadTS GmbH. Made with ❤️ in Germany.</p>
+              <div className="flex gap-6"><a href="#" className="hover:text-white transition-colors">Status</a><a href="#" className="hover:text-white transition-colors">Docs</a><a href="#" className="hover:text-white transition-colors">Contact</a></div>
+          </div>
       </footer>
-      
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes moveRight { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
-        @keyframes moveLeft { 0% { left: 100%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 0; opacity: 0; } }
-        @keyframes spin-slow { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes packet-flow { 0% { transform: translate(-50%, -50%) rotate(0deg) translateX(200px) scale(0); opacity: 0; } 10% { opacity: 1; scale: 1; } 100% { transform: translate(-50%, -50%) rotate(120deg) translateX(40px) scale(0.5); opacity: 0; } }
-        @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-        @keyframes orbit-1 { 
-            0% { transform: rotateZ(0deg) translateX(180px) rotateZ(0deg) rotateY(0deg); }
-            100% { transform: rotateZ(360deg) translateX(180px) rotateZ(-360deg) rotateY(0deg); }
-        }
-        @keyframes orbit-2 { 
-            0% { transform: rotateZ(120deg) translateX(130px) rotateZ(-120deg); }
-            100% { transform: rotateZ(480deg) translateX(130px) rotateZ(-480deg); }
-        }
-        @keyframes orbit-3 { 
-            0% { transform: rotateZ(240deg) translateX(200px) rotateZ(-240deg); }
-            100% { transform: rotateZ(600deg) translateX(200px) rotateZ(-600deg); }
-        }
-      `}} />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
+
 import React, { useEffect, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { Layout } from './components/Layout';
+import { Layout, HashRouter, Routes, Route, Navigate, useNavigate } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { CampaignDetail } from './pages/CampaignDetail';
 import { Clients } from './pages/Clients';
@@ -9,6 +9,7 @@ import { ClientDetail } from './pages/ClientDetail';
 import { Settings } from './pages/Settings';
 import { Portal } from './pages/Portal';
 import { LandingPage } from './pages/LandingPage';
+import { AuthPage } from './pages/AuthPage';
 import { getWorkspaceSettings } from './services/dataService';
 import { Onboarding } from './components/Onboarding';
 
@@ -36,23 +37,17 @@ const applyTheme = (primaryRgb: string, theme: 'dark' | 'light') => {
     }
 };
 
-// Wrapper to apply the Dashboard Layout to app routes
-const AppLayoutWrapper = () => (
-    <Layout>
-        <Outlet />
-    </Layout>
-);
+// Route Wrapper for Onboarding to handle navigation after completion
+const OnboardingPage = () => {
+    const navigate = useNavigate();
+    return <Onboarding onComplete={() => navigate('/dashboard')} />;
+};
 
 function App() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
   useEffect(() => {
     const initTheme = async () => {
         const settings = await getWorkspaceSettings();
         applyTheme(settings.primary_color, settings.theme);
-        if (!settings.onboarding_complete) {
-            setShowOnboarding(true);
-        }
     };
     initTheme();
     
@@ -67,23 +62,31 @@ function App() {
 
   return (
     <HashRouter>
-      {showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}
-      
       <Routes>
         {/* MARKETING SITE (Root) */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* MAIN APPLICATION (With Sidebar Layout) */}
-        <Route element={<AppLayoutWrapper />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/clients/:clientId" element={<ClientDetail />} />
-          <Route path="/campaign/:id" element={<CampaignDetail />} />
-          <Route path="/portal" element={<Portal />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
+        {/* AUTHENTICATION */}
+        <Route path="/auth" element={<AuthPage />} />
 
-        {/* Fallback */}
+        {/* SETUP FLOW */}
+        <Route path="/setup" element={<OnboardingPage />} />
+
+        {/* MAIN APPLICATION (Protected by Layout Logic) */}
+        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+        
+        {/* Clients */}
+        <Route path="/clients" element={<Layout><Clients /></Layout>} />
+        <Route path="/clients/:clientId" element={<Layout><ClientDetail /></Layout>} />
+        
+        {/* Campaigns */}
+        <Route path="/campaign/:id" element={<Layout><CampaignDetail /></Layout>} />
+        
+        {/* Admin Tools */}
+        <Route path="/portal" element={<Layout><Portal /></Layout>} />
+        <Route path="/settings" element={<Layout><Settings /></Layout>} />
+
+        {/* Fallback to Landing Page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>

@@ -1,7 +1,5 @@
-
-
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/Layout';
 import { Client, Campaign } from '../types';
 import { getClients, getCampaigns, createClient, updateClient, uploadImage } from '../services/dataService';
 import { GlassCard, GlassButton, Badge, GlassInput, Toggle } from '../components/ui/Glass';

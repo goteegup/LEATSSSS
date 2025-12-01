@@ -1,23 +1,24 @@
-
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from '../components/Layout';
 import { getCampaignById, getClientById, getSession } from '../services/dataService';
 import { Campaign, Client } from '../types';
-import { LayoutDashboard, Users, GitPullRequest, Database, UploadCloud, ChevronRight, LayoutTemplate, Eye } from 'lucide-react';
+import { LayoutDashboard, Users, GitPullRequest, Database, UploadCloud, ChevronRight, LayoutTemplate, Eye, Zap } from 'lucide-react';
 import { OverviewTab } from './tabs/OverviewTab';
 import { LeadsTab } from './tabs/LeadsTab';
 import { DataFieldsTab } from './tabs/DataFieldsTab';
 import { PipelineTab } from './tabs/PipelineTab';
 import { ImportTab } from './tabs/ImportTab';
 import { ViewConfigTab } from './tabs/ViewConfigTab';
+import { IntegrationsTab } from './tabs/IntegrationsTab';
 
 const ALL_TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'leads', label: 'Leads', icon: Users },
   { id: 'pipeline', label: 'Pipeline', icon: GitPullRequest },
   { id: 'fields', label: 'Data Schema', icon: Database },
-  { id: 'view-config', label: 'View', icon: Eye },
+  { id: 'integrations', label: 'Integrations', icon: Zap },
   { id: 'import', label: 'Import', icon: UploadCloud },
+  { id: 'view-config', label: 'View', icon: Eye },
 ];
 
 export const CampaignDetail = () => {
@@ -55,6 +56,7 @@ export const CampaignDetail = () => {
       case 'pipeline': return <PipelineTab campaign={campaign} onUpdate={setCampaign} />;
       case 'fields': return <DataFieldsTab campaign={campaign} onUpdate={setCampaign} />;
       case 'view-config': return <ViewConfigTab campaign={campaign} onUpdate={setCampaign} />;
+      case 'integrations': return <IntegrationsTab campaign={campaign} onUpdate={setCampaign} />;
       case 'import': return <ImportTab campaign={campaign} onUpdate={setCampaign} />;
       default: return null;
     }
@@ -100,10 +102,11 @@ export const CampaignDetail = () => {
             </div>
 
             {/* Desktop Tabs (or Admin Mobile Tabs) */}
-            <div className="flex gap-6 overflow-x-auto no-scrollbar">
+            <div className="flex gap-6 overflow-x-auto no-scrollbar" id="campaign-tabs">
                 {visibleTabs.map(tab => (
                     <button
                         key={tab.id}
+                        id={`tab-${tab.id}`}
                         onClick={() => setActiveTab(tab.id)}
                         className={`group flex items-center gap-2 pb-3 px-1 border-b-2 transition-all whitespace-nowrap ${
                             activeTab === tab.id 

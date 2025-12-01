@@ -5,7 +5,7 @@ import { GlassButton, Toggle, GlassInput } from '../../components/ui/Glass';
 import { Modal } from '../../components/ui/Modal';
 import { InfoTooltip } from '../../components/ui/Tooltip';
 import { Database, Plus, Trash2, Facebook, AlertTriangle, DollarSign, Type, Calendar, Hash, Mail, Phone, List, FileSpreadsheet, Edit3, FormInput, Sparkles, Globe, DownloadCloud, Link as LinkIcon, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../components/Layout';
 
 interface DataFieldsTabProps {
   campaign: Campaign;

@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/Layout';
 import { GlassCard, GlassButton } from '../components/ui/Glass';
 import { KpiGrid } from '../components/shared/KpiGrid';
 import { ArrowRight, BarChart3, TrendingUp, Users, DollarSign, Calendar, CheckCircle2, Sparkles } from 'lucide-react';
@@ -98,7 +97,7 @@ export const Dashboard = () => {
         </div>
 
         {/* KPI Grid (Reusable Component) */}
-        <div className="relative">
+        <div className="relative" id="dashboard-kpi">
              <KpiGrid stats={stats} columns={4} />
         </div>
 
@@ -171,7 +170,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Active Campaigns List */}
-        <GlassCard className="overflow-hidden border-zinc-200/60 dark:border-white/10" intensity="medium">
+        <GlassCard className="overflow-hidden border-zinc-200/60 dark:border-white/10" intensity="medium" id="dashboard-campaigns">
             <div className="p-6 border-b border-zinc-200 dark:border-white/5 flex items-center justify-between bg-zinc-50/50 dark:bg-white/5">
                 <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Active Campaigns</h3>
                 <Link to="/clients" className="text-sm text-primary-500 hover:text-primary-400 font-medium flex items-center gap-1 transition-all hover:gap-2">

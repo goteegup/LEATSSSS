@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Campaign, PipelineStage } from '../../types';
 import { updateCampaignSettings } from '../../services/dataService';
@@ -88,7 +87,7 @@ export const PipelineTab: React.FC<PipelineTabProps> = ({ campaign, onUpdate }) 
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Pipeline Stages</h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">Configure deal flow and conversion points.</p>
         </div>
-        <GlassButton onClick={() => setIsAddModalOpen(true)}>
+        <GlassButton onClick={() => setIsAddModalOpen(true)} id="pipeline-add-btn">
             <Plus className="w-4 h-4" /> Add Stage
         </GlassButton>
       </div>

@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { Campaign, Lead, SYSTEM_FIELDS } from '../../types';
 import { getLeadsByCampaign, getFieldValue, addLead, updateLead, deleteLead } from '../../services/dataService';
@@ -203,7 +201,7 @@ export const LeadsTab: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
                     <LayoutList className="w-4 h-4" />
                 </button>
             </div>
-            <GlassButton onClick={() => setIsAddModalOpen(true)}>
+            <GlassButton onClick={() => setIsAddModalOpen(true)} id="leads-add-btn">
                 <Plus className="w-4 h-4" /> <span className="hidden md:inline">Add Lead</span>
             </GlassButton>
         </div>
@@ -213,7 +211,7 @@ export const LeadsTab: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
       {viewMode === 'kanban' ? (
         <>
             {/* Desktop Kanban */}
-            <div className="hidden md:flex gap-4 overflow-x-auto pb-4 h-full">
+            <div className="hidden md:flex gap-4 overflow-x-auto pb-4 h-full" id="leads-kanban">
                 {campaign.settings.pipeline_stages.sort((a,b) => a.order - b.order).map(stage => (
                     <div key={stage.id} className="min-w-[320px] w-[320px] flex-shrink-0 flex flex-col gap-3">
                         <div className={`flex items-center justify-between px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 border-t-4 ${stage.color.replace('bg-', 'border-')}`}>
@@ -228,7 +226,7 @@ export const LeadsTab: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
             </div>
 
             {/* Mobile Kanban */}
-            <div className="md:hidden space-y-3 pb-24">
+            <div className="md:hidden space-y-3 pb-24" id="leads-kanban-mobile">
                  {campaign.settings.pipeline_stages.sort((a,b) => a.order - b.order).map(stage => {
                      const stageLeads = leads.filter(l => l.stage_id === stage.id);
                      const isOpen = expandedStage === stage.id;
