@@ -1,4 +1,4 @@
-import { Campaign, Client, Lead, WorkspaceSettings, PipelineStage, Session, User, IntegrationSettings, CustomFieldDefinition } from '../types';
+import { Campaign, Client, Lead, WorkspaceSettings, PipelineStage, Session, User, IntegrationSettings, CustomFieldDefinition, ClientViewConfig } from '../types';
 
 // --- MOCK STATE ---
 
@@ -49,7 +49,8 @@ let MOCK_CLIENTS: Client[] = [
     portal_access: {
         email: 'portal@nexus.com',
         password: 'password123',
-        is_enabled: true
+        is_enabled: true,
+        can_view_dashboard: true
     }
   },
   { 
@@ -61,7 +62,8 @@ let MOCK_CLIENTS: Client[] = [
     website: 'stellarauto.de',
     status: 'active',
     portal_access: {
-        is_enabled: false
+        is_enabled: false,
+        can_view_dashboard: true
     }
   },
   { 
@@ -73,7 +75,8 @@ let MOCK_CLIENTS: Client[] = [
     website: 'velvet-interiors.design',
     status: 'inactive',
     portal_access: {
-        is_enabled: false
+        is_enabled: false,
+        can_view_dashboard: false
     }
   },
 ];
@@ -89,9 +92,14 @@ const DEFAULT_STAGES: PipelineStage[] = [
 const DEFAULT_INTEGRATIONS: IntegrationSettings = {
     slack: {
         enabled: false,
+        webhook_url: '',
+        channel: '',
         events: {
             new_lead: { enabled: true, template: "🔥 New Lead: {full_name} ({phone}) via {source}" },
-            won_deal: { enabled: true, template: "💰 BOOM! Deal closed: {full_name} just brought in {revenue}!" }
+            won_deal: { enabled: true, template: "💰 BOOM! Deal closed: {full_name} just brought in {revenue}!" },
+            appointment_booked: { enabled: true, template: "📅 Appointment confirmed with {full_name}." },
+            lead_lost: { enabled: false, template: "❌ Lead lost: {full_name}. Reason: {notes}" },
+            lead_unreachable: { enabled: false, template: "⚠️ Alert: {full_name} has not been reached after 2 attempts." }
         }
     },
     email: {
@@ -99,7 +107,9 @@ const DEFAULT_INTEGRATIONS: IntegrationSettings = {
         recipients: [],
         events: {
             new_lead_alert: true,
-            daily_digest: false
+            daily_digest: false,
+            appointment_confirmation_customer: false,
+            won_deal_alert: true
         }
     },
     meta: {
@@ -109,6 +119,13 @@ const DEFAULT_INTEGRATIONS: IntegrationSettings = {
             lead_on_create: false
         }
     }
+};
+
+const DEFAULT_CLIENT_VIEW: ClientViewConfig = {
+    show_dashboard: true,
+    show_kanban: true,
+    show_list: true,
+    show_kpi: true
 };
 
 const calcStats = (rev: number, spend: number, leads: number, appts: number, sales: number) => ({
@@ -139,7 +156,8 @@ let MOCK_CAMPAIGNS: Campaign[] = [
       card_field_order: ['revenue', 'phone', 'industry'],
       card_primary_field: 'full_name',
       discovered_fields: [],
-      integrations: { ...DEFAULT_INTEGRATIONS }
+      integrations: { ...DEFAULT_INTEGRATIONS },
+      client_view: { ...DEFAULT_CLIENT_VIEW }
     }
   },
   {
@@ -157,7 +175,8 @@ let MOCK_CAMPAIGNS: Campaign[] = [
       card_field_order: ['email'],
       card_primary_field: 'full_name',
       discovered_fields: [],
-      integrations: { ...DEFAULT_INTEGRATIONS }
+      integrations: { ...DEFAULT_INTEGRATIONS },
+      client_view: { ...DEFAULT_CLIENT_VIEW }
     }
   },
   {
@@ -175,7 +194,8 @@ let MOCK_CAMPAIGNS: Campaign[] = [
       card_field_order: ['email'],
       card_primary_field: 'full_name',
       discovered_fields: [],
-      integrations: { ...DEFAULT_INTEGRATIONS }
+      integrations: { ...DEFAULT_INTEGRATIONS },
+      client_view: { ...DEFAULT_CLIENT_VIEW }
     }
   }
 ];
@@ -195,6 +215,53 @@ let MOCK_LEADS: Lead[] = [
     data: { full_name: 'Charlie Davis', email: 'charlie@example.com', phone: '+15550103', revenue: 3500, industry: 'Retail' }
   }
 ];
+
+// --- AUTOMATION ENGINE ---
+const triggerAutomations = async (lead: Lead, oldLead: Lead | null) => {
+    const campaign = MOCK_CAMPAIGNS.find(c => c.id === lead.campaign_id);
+    if (!campaign) return;
+    
+    const settings = campaign.settings.integrations;
+    if (!settings) return;
+
+    // 1. New Lead
+    if (!oldLead && settings.slack.enabled && settings.slack.events.new_lead.enabled) {
+        console.log(`[Slack] Sending New Lead Alert: ${lead.data.full_name}`);
+    }
+
+    // Stage Change Detection
+    if (oldLead && oldLead.stage_id !== lead.stage_id) {
+        const newStage = campaign.settings.pipeline_stages.find(s => s.id === lead.stage_id);
+        if (!newStage) return;
+
+        // 2. Won Deal
+        if (newStage.type === 'won') {
+            if (settings.slack.enabled && settings.slack.events.won_deal.enabled) {
+                console.log(`[Slack] 💰 Deal Won! ${lead.data.full_name} ($${lead.data.revenue})`);
+            }
+            if (settings.meta.enabled && settings.meta.events.purchase_on_won) {
+                console.log(`[Meta CAPI] Sending Purchase Event: Value ${lead.data.revenue}`);
+            }
+        }
+
+        // 3. Appointment Booked
+        if (newStage.type === 'appointment') {
+            if (settings.slack.enabled && settings.slack.events.appointment_booked.enabled) {
+                console.log(`[Slack] 📅 Appointment Booked with ${lead.data.full_name}`);
+            }
+            if (settings.email.enabled && settings.email.events.appointment_confirmation_customer) {
+                console.log(`[Email] Sending Confirmation to ${lead.data.email}`);
+            }
+        }
+
+        // 4. Lost Lead
+        if (newStage.type === 'lost') {
+            if (settings.slack.enabled && settings.slack.events.lead_lost.enabled) {
+                console.log(`[Slack] ❌ Lead Lost: ${lead.data.full_name}`);
+            }
+        }
+    }
+};
 
 // --- BLUEPRINT GENERATOR (For Onboarding) ---
 
@@ -219,7 +286,12 @@ export const initializeDemoWorkspace = async (
         email: 'client@example.com',
         website: `${clientName.toLowerCase().replace(' ', '')}.com`,
         status: 'active',
-        portal_access: { is_enabled: true, email: 'client@portal.com', password: 'demo' }
+        portal_access: { 
+            is_enabled: true, 
+            email: 'client@portal.com', 
+            password: 'demo',
+            can_view_dashboard: true
+        }
     };
     MOCK_CLIENTS.push(client);
 
@@ -309,10 +381,34 @@ export const initializeDemoWorkspace = async (
             card_field_order: cardLayout,
             card_primary_field: 'full_name',
             integrations: { 
-                slack: { enabled: false, events: { new_lead: { enabled: true, template: '' }, won_deal: { enabled: true, template: '' } } },
-                email: { enabled: false, recipients: [], events: { new_lead_alert: true, daily_digest: false } },
-                meta: { enabled: false, events: { purchase_on_won: true, lead_on_create: false } }
-            }
+                slack: { 
+                    enabled: false, 
+                    webhook_url: '',
+                    channel: '',
+                    events: { 
+                        new_lead: { enabled: true, template: "🔥 New Lead: {full_name} ({phone}) via {source}" }, 
+                        won_deal: { enabled: true, template: "💰 BOOM! Deal closed: {full_name} just brought in {revenue}!" },
+                        appointment_booked: { enabled: true, template: "📅 Appointment confirmed with {full_name}." },
+                        lead_lost: { enabled: false, template: "❌ Lead lost: {full_name}. Reason: {notes}" },
+                        lead_unreachable: { enabled: false, template: "⚠️ Alert: {full_name} has not been reached after 2 attempts." }
+                    } 
+                },
+                email: { 
+                    enabled: false, 
+                    recipients: [], 
+                    events: { 
+                        new_lead_alert: true, 
+                        daily_digest: false,
+                        appointment_confirmation_customer: false,
+                        won_deal_alert: true
+                    } 
+                },
+                meta: { 
+                    enabled: false, 
+                    events: { purchase_on_won: true, lead_on_create: false } 
+                }
+            },
+            client_view: { ...DEFAULT_CLIENT_VIEW }
         },
         stats: calcStats(0, 0, 0, 0, 0)
     };
@@ -477,7 +573,7 @@ export const createClient = async (client: Omit<Client, 'id'>): Promise<Client> 
     const newClient = { 
         ...client, 
         id: `c${Date.now()}`,
-        portal_access: { is_enabled: false } 
+        portal_access: { ...client.portal_access, is_enabled: false } 
     };
     MOCK_CLIENTS.push(newClient);
     return new Promise(resolve => setTimeout(() => resolve({ ...newClient }), 200));
@@ -505,7 +601,8 @@ export const createCampaign = async (campaignData: Partial<Campaign> & { client_
         card_field_order: ['email'],
         card_primary_field: 'full_name',
         discovered_fields: [],
-        integrations: { ...DEFAULT_INTEGRATIONS }
+        integrations: { ...DEFAULT_INTEGRATIONS },
+        client_view: { ...DEFAULT_CLIENT_VIEW }
     };
 
     // Use template settings if provided
@@ -536,8 +633,28 @@ export const duplicateCampaign = async (campaignId: string, name?: string, isTem
     const source = MOCK_CAMPAIGNS.find(c => c.id === campaignId);
     if (!source) return null;
 
+    // Deep copy everything
+    const deepCopy = JSON.parse(JSON.stringify(source));
+
+    // SANITIZATION: If making a template or copy, clear sensitive integration keys
+    if (deepCopy.settings && deepCopy.settings.integrations) {
+        if (deepCopy.settings.integrations.slack) {
+            deepCopy.settings.integrations.slack.webhook_url = '';
+            deepCopy.settings.integrations.slack.channel = '';
+            // Note: We KEEP the event templates/enables (logic), just clear the connection
+        }
+        if (deepCopy.settings.integrations.email) {
+            deepCopy.settings.integrations.email.recipients = []; 
+        }
+        if (deepCopy.settings.integrations.meta) {
+            deepCopy.settings.integrations.meta.pixel_id = '';
+            deepCopy.settings.integrations.meta.access_token = '';
+            deepCopy.settings.integrations.meta.test_code = '';
+        }
+    }
+
     const newCampaign: Campaign = {
-        ...JSON.parse(JSON.stringify(source)), // Deep copy everything including settings
+        ...deepCopy,
         id: `cam${Date.now()}`,
         name: name || `${source.name} (Copy)`,
         status: 'paused', // Default to paused when duplicating
@@ -585,13 +702,16 @@ export const updateCampaignSettings = async (campaignId: string, newSettings: an
 
 export const addLead = async (lead: Lead): Promise<Lead> => {
     MOCK_LEADS.push(lead);
+    triggerAutomations(lead, null); // Trigger new lead automation
     return new Promise(resolve => setTimeout(() => resolve(lead), 100));
 };
 
 export const updateLead = async (lead: Lead): Promise<Lead> => {
     const index = MOCK_LEADS.findIndex(l => l.id === lead.id);
     if (index !== -1) {
+        const oldLead = MOCK_LEADS[index];
         MOCK_LEADS[index] = { ...lead };
+        triggerAutomations(lead, oldLead); // Trigger update automations
     }
     return new Promise(resolve => setTimeout(() => resolve(lead), 100));
 };

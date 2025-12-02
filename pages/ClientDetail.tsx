@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from '../components/Layout';
 import { getClientById, getCampaignsByClientId, createCampaign, updateClient, updateCampaign, getSession, uploadImage, duplicateCampaign, getCampaigns } from '../services/dataService';
@@ -5,7 +6,7 @@ import { Client, Campaign } from '../types';
 import { GlassCard, GlassButton, Badge, Toggle } from '../components/ui/Glass';
 import { Modal } from '../components/ui/Modal';
 import { KpiGrid } from '../components/shared/KpiGrid';
-import { ChevronRight, LayoutDashboard, Plus, Edit2, Link as LinkIcon, Upload, Image as ImageIcon, Globe, User, Copy, Settings, Calendar, DollarSign, Users, MousePointer2, Layers, Database } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Plus, Edit2, Link as LinkIcon, Upload, Image as ImageIcon, Globe, User, Copy, Settings, Calendar, DollarSign, Users, MousePointer2, Layers } from 'lucide-react';
 
 export const ClientDetail = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -14,9 +15,6 @@ export const ClientDetail = () => {
   const [allTemplates, setAllTemplates] = useState<Campaign[]>([]); // For template selection
   const [session, setSession] = useState(getSession());
   
-  // View State (Tabs)
-  const [activeTab, setActiveTab] = useState<'campaigns' | 'templates'>('campaigns');
-
   // Modal States
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -37,7 +35,7 @@ export const ClientDetail = () => {
       end_date: '', 
       status: 'active', 
       templateId: '',
-      is_template: false // Track if we are creating a template
+      is_template: false 
   });
   
   const [clientForm, setClientForm] = useState({ name: '', contact_person: '', email: '', status: 'active', logo: '', address: '', website: '' });
@@ -55,7 +53,6 @@ export const ClientDetail = () => {
 
   const openCreateCampaign = async () => {
       setEditingCampaign(null);
-      // Default is_template to true if we are in the templates tab
       setCampaignForm({ 
           name: '', 
           budget: 0, 
@@ -63,7 +60,7 @@ export const ClientDetail = () => {
           end_date: '', 
           status: 'active', 
           templateId: '',
-          is_template: activeTab === 'templates' 
+          is_template: false 
       });
       
       // Load all campaigns to allow using them as templates
@@ -199,24 +196,21 @@ export const ClientDetail = () => {
 
   const isAdmin = session.role === 'admin';
 
-  // Aggregate Stats (Only calculate from non-template campaigns)
-  const realCampaigns = campaigns.filter(c => !c.is_template);
+  // Only show non-template campaigns in Client View
+  const displayedCampaigns = campaigns.filter(c => !c.is_template);
+  
+  // Aggregate Stats
   const aggregateStats = {
-      leads: realCampaigns.reduce((acc, c) => acc + c.stats.leads, 0),
-      appointments: realCampaigns.reduce((acc, c) => acc + c.stats.appointments, 0),
-      sales: realCampaigns.reduce((acc, c) => acc + c.stats.sales, 0),
-      revenue: realCampaigns.reduce((acc, c) => acc + c.stats.revenue, 0),
-      spend: realCampaigns.reduce((acc, c) => acc + c.stats.spend, 0),
+      leads: displayedCampaigns.reduce((acc, c) => acc + c.stats.leads, 0),
+      appointments: displayedCampaigns.reduce((acc, c) => acc + c.stats.appointments, 0),
+      sales: displayedCampaigns.reduce((acc, c) => acc + c.stats.sales, 0),
+      revenue: displayedCampaigns.reduce((acc, c) => acc + c.stats.revenue, 0),
+      spend: displayedCampaigns.reduce((acc, c) => acc + c.stats.spend, 0),
   };
-
-  // Filter List based on Tab
-  const displayedCampaigns = activeTab === 'campaigns' 
-    ? campaigns.filter(c => !c.is_template)
-    : campaigns.filter(c => c.is_template);
 
   // Group templates for dropdown
   const templateCampaigns = allTemplates.filter(t => t.is_template);
-  const otherCampaigns = allTemplates.filter(t => !t.is_template);
+  const otherCampaigns = allTemplates.filter(t => !t.is_template && t.client_id !== clientId); // Don't list own campaigns as templates? Or do?
 
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
@@ -264,41 +258,20 @@ export const ClientDetail = () => {
         
         {isAdmin && (
             <GlassButton onClick={openCreateCampaign}>
-                <Plus className="w-4 h-4" /> {activeTab === 'templates' ? 'New Template' : 'New Campaign'}
+                <Plus className="w-4 h-4" /> New Campaign
             </GlassButton>
         )}
       </div>
 
-      {/* Aggregate Stats Dashboard (Reusable) - Only show for Active Campaigns view */}
-      {activeTab === 'campaigns' && (
-          <KpiGrid stats={aggregateStats} columns={5} />
-      )}
+      {/* Aggregate Stats Dashboard (Reusable) */}
+      <KpiGrid stats={aggregateStats} columns={5} />
 
-      {/* Campaigns Section with Tabs */}
+      {/* Campaigns Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
-                    {activeTab === 'campaigns' ? <LayoutDashboard className="w-5 h-5 text-primary-500" /> : <Layers className="w-5 h-5 text-purple-500" />}
-                    {activeTab === 'campaigns' ? 'Active Campaigns' : 'Templates'}
-                </h2>
-                
-                {/* Tabs Switcher */}
-                <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-white/5">
-                    <button
-                        onClick={() => setActiveTab('campaigns')}
-                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === 'campaigns' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}
-                    >
-                        Campaigns
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('templates')}
-                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === 'templates' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}
-                    >
-                        Templates
-                    </button>
-                </div>
-            </div>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                <LayoutDashboard className="w-5 h-5 text-primary-500" /> Active Campaigns
+            </h2>
         </div>
         
         <div className="space-y-4">
@@ -318,11 +291,6 @@ export const ClientDetail = () => {
                                     <Badge color={campaign.status === 'active' ? 'primary' : 'zinc'}>
                                         {campaign.status}
                                     </Badge>
-                                    {campaign.is_template && (
-                                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/20">
-                                            <Layers className="w-3 h-3" /> Template
-                                        </div>
-                                    )}
                                     <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">ID: {campaign.id.slice(0,6)}</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
@@ -334,49 +302,39 @@ export const ClientDetail = () => {
                                 </div>
                             </div>
 
-                            {/* THE BIG 3 METRICS (Only show real values for campaigns, not templates usually) */}
-                            {!campaign.is_template && (
-                                <div className="flex items-center gap-2 md:gap-6 bg-zinc-50/50 dark:bg-black/20 p-2 md:p-3 rounded-xl border border-zinc-200/50 dark:border-white/5 w-full md:w-auto justify-between md:justify-start">
-                                    
-                                    {/* 1. Revenue (Highlighted) */}
-                                    <div className="flex flex-col px-2 md:px-4 border-r border-zinc-200 dark:border-white/5 last:border-0">
-                                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                                            <DollarSign className="w-3 h-3 text-green-500" /> Revenue
-                                        </span>
-                                        <span className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white">
-                                            ${(campaign.stats.revenue/1000).toFixed(1)}k
-                                        </span>
-                                    </div>
-
-                                    {/* 2. Appointments */}
-                                    <div className="flex flex-col px-2 md:px-4 border-r border-zinc-200 dark:border-white/5 last:border-0">
-                                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                                            <Calendar className="w-3 h-3 text-purple-500" /> Appts
-                                        </span>
-                                        <span className="text-base md:text-lg font-bold text-zinc-700 dark:text-zinc-200">
-                                            {campaign.stats.appointments}
-                                        </span>
-                                    </div>
-
-                                    {/* 3. Leads */}
-                                    <div className="flex flex-col px-2 md:px-4 last:border-0">
-                                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                                            <Users className="w-3 h-3 text-blue-500" /> Leads
-                                        </span>
-                                        <span className="text-base md:text-lg font-bold text-zinc-700 dark:text-zinc-200">
-                                            {campaign.stats.leads}
-                                        </span>
-                                    </div>
+                            {/* THE BIG 3 METRICS */}
+                            <div className="flex items-center gap-2 md:gap-6 bg-zinc-50/50 dark:bg-black/20 p-2 md:p-3 rounded-xl border border-zinc-200/50 dark:border-white/5 w-full md:w-auto justify-between md:justify-start">
+                                
+                                {/* 1. Revenue (Highlighted) */}
+                                <div className="flex flex-col px-2 md:px-4 border-r border-zinc-200 dark:border-white/5 last:border-0">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                        <DollarSign className="w-3 h-3 text-green-500" /> Revenue
+                                    </span>
+                                    <span className="text-lg md:text-xl font-bold text-zinc-900 dark:text-white">
+                                        ${(campaign.stats.revenue/1000).toFixed(1)}k
+                                    </span>
                                 </div>
-                            )}
 
-                             {/* Templates get a simpler info block */}
-                            {campaign.is_template && (
-                                <div className="hidden md:flex items-center gap-4 text-xs text-zinc-500 bg-zinc-50 dark:bg-white/5 px-4 py-2 rounded-lg border border-zinc-200 dark:border-white/5">
-                                    <div className="flex items-center gap-1"><Layers className="w-3 h-3"/> {campaign.settings.pipeline_stages.length} Stages</div>
-                                    <div className="flex items-center gap-1"><Database className="w-3 h-3"/> {campaign.settings.custom_fields.length} Custom Fields</div>
+                                {/* 2. Appointments */}
+                                <div className="flex flex-col px-2 md:px-4 border-r border-zinc-200 dark:border-white/5 last:border-0">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3 text-purple-500" /> Appts
+                                    </span>
+                                    <span className="text-base md:text-lg font-bold text-zinc-700 dark:text-zinc-200">
+                                        {campaign.stats.appointments}
+                                    </span>
                                 </div>
-                            )}
+
+                                {/* 3. Leads */}
+                                <div className="flex flex-col px-2 md:px-4 last:border-0">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                        <Users className="w-3 h-3 text-blue-500" /> Leads
+                                    </span>
+                                    <span className="text-base md:text-lg font-bold text-zinc-700 dark:text-zinc-200">
+                                        {campaign.stats.leads}
+                                    </span>
+                                </div>
+                            </div>
 
                             {/* Actions (Isolated) */}
                             {isAdmin && (
@@ -418,15 +376,11 @@ export const ClientDetail = () => {
              {displayedCampaigns.length === 0 && (
                  <div className="p-12 border border-dashed border-zinc-200 dark:border-white/10 rounded-2xl text-center flex flex-col items-center gap-4">
                      <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-900 rounded-full flex items-center justify-center">
-                        {activeTab === 'campaigns' ? <LayoutDashboard className="w-6 h-6 text-zinc-400" /> : <Layers className="w-6 h-6 text-zinc-400" />}
+                        <LayoutDashboard className="w-6 h-6 text-zinc-400" />
                      </div>
                      <div>
-                        <h3 className="text-zinc-900 dark:text-white font-medium">
-                            {activeTab === 'campaigns' ? 'No active campaigns' : 'No templates found'}
-                        </h3>
-                        <p className="text-zinc-500 text-sm">
-                            {activeTab === 'campaigns' ? 'Create a new campaign to start tracking metrics.' : 'Create a template to standardise your workflows.'}
-                        </p>
+                        <h3 className="text-zinc-900 dark:text-white font-medium">No active campaigns</h3>
+                        <p className="text-zinc-500 text-sm">Create a new campaign to start tracking metrics.</p>
                      </div>
                  </div>
              )}
@@ -435,7 +389,7 @@ export const ClientDetail = () => {
 
       {/* CAMPAIGN MODAL (Create/Edit) - Admin Only */}
       {isAdmin && (
-          <Modal isOpen={isCampaignModalOpen} onClose={() => setIsCampaignModalOpen(false)} title={editingCampaign ? "Edit Campaign" : (activeTab === 'templates' ? "Create New Template" : "Create New Campaign")}>
+          <Modal isOpen={isCampaignModalOpen} onClose={() => setIsCampaignModalOpen(false)} title={editingCampaign ? "Edit Campaign" : "Create New Campaign"}>
             <form onSubmit={handleSaveCampaign} className="space-y-4">
                 <div>
                     <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">Name</label>
@@ -445,7 +399,7 @@ export const ClientDetail = () => {
                         value={campaignForm.name}
                         onChange={(e) => setCampaignForm({...campaignForm, name: e.target.value})}
                         className="w-full px-4 py-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-primary-500/50"
-                        placeholder={activeTab === 'templates' ? "e.g. Dental Audit Template" : "e.g. Summer Sale 2024"}
+                        placeholder="e.g. Summer Sale 2024"
                     />
                 </div>
 
@@ -481,31 +435,6 @@ export const ClientDetail = () => {
                                 )}
                             </select>
                         </div>
-                        
-                        {/* 2. Save as Template Option */}
-                        <div className="flex items-center justify-between border-t border-zinc-200 dark:border-white/10 pt-4">
-                             <div>
-                                <label className="text-sm font-semibold text-zinc-900 dark:text-white block">Mark as Template</label>
-                                <p className="text-[10px] text-zinc-500">Will appear in the 'Templates' tab.</p>
-                             </div>
-                             <Toggle 
-                                checked={campaignForm.is_template} 
-                                onChange={(val) => setCampaignForm({...campaignForm, is_template: val})} 
-                             />
-                        </div>
-                    </div>
-                )}
-                
-                {/* Editing mode: allow toggling template status */}
-                {editingCampaign && (
-                    <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-white/10">
-                             <div>
-                                <label className="text-sm font-semibold text-zinc-900 dark:text-white block">Is Template?</label>
-                             </div>
-                             <Toggle 
-                                checked={campaignForm.is_template} 
-                                onChange={(val) => setCampaignForm({...campaignForm, is_template: val})} 
-                             />
                     </div>
                 )}
                 
@@ -556,7 +485,7 @@ export const ClientDetail = () => {
                 </div>
 
                 <GlassButton type="submit" className="w-full justify-center mt-4">
-                    {editingCampaign ? "Save Changes" : (campaignForm.is_template ? "Create Template" : "Create Campaign")}
+                    {editingCampaign ? "Save Changes" : "Create Campaign"}
                 </GlassButton>
             </form>
           </Modal>

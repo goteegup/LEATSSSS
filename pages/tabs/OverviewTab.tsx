@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { Campaign, WorkspaceSettings } from '../../types';
 import { getWorkspaceSettings } from '../../services/dataService';

@@ -1,9 +1,8 @@
 
-
 import React, { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { cycleTheme, getWorkspaceSettings, getSession, logoutClient, getClientById, logout } from '../services/dataService';
 import { Client, WorkspaceSettings, User as UserType } from '../types';
-import { LayoutDashboard, Users, Settings, Globe, Sun, Moon, Shield, LogOut, Home, MonitorPlay, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, Globe, Sun, Moon, Shield, LogOut, Home, MonitorPlay, UserCircle, Layers } from 'lucide-react';
 import { TourOverlay } from './TourOverlay';
 
 // --- ROUTER SHIM ---
@@ -234,6 +233,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       { icon: Users, label: 'Clients', path: '/clients', roles: ['admin'], id: 'nav-clients' },
       { icon: Home, label: 'My Overview', path: session.clientId ? `/clients/${session.clientId}` : '/clients', roles: ['client'], id: 'nav-overview' },
       { icon: Shield, label: 'Portal', path: '/portal', roles: ['admin'], id: 'nav-portal' },
+      { icon: Layers, label: 'Templates', path: '/templates', roles: ['admin'], id: 'nav-templates' },
       { icon: Settings, label: 'Settings', path: '/settings', roles: ['admin'], id: 'nav-settings' },
       { icon: MonitorPlay, label: 'Website', path: '/', roles: ['admin', 'client'], id: 'nav-website' },
   ];

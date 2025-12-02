@@ -4,18 +4,17 @@ import { getClients, loginAsClient, updateClient } from '../services/dataService
 import { Client } from '../types';
 import { GlassCard, GlassButton, Badge, GlassInput, Toggle } from '../components/ui/Glass';
 import { Modal } from '../components/ui/Modal';
-import { Shield, ArrowRight, User, Search, Key, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Shield, ArrowRight, User, Search, Key, Lock, Eye, EyeOff, LayoutDashboard } from 'lucide-react';
 
 export const Portal = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
   
   // Access Management State
   const [manageAccessClient, setManageAccessClient] = useState<Client | null>(null);
   const [accessForm, setAccessForm] = useState({ email: '', password: '', is_enabled: false });
   const [showPassword, setShowPassword] = useState(false);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     getClients().then(setClients);
@@ -50,8 +49,6 @@ export const Portal = () => {
       };
 
       await updateClient(updatedClient);
-      
-      // Update local list
       setClients(clients.map(c => c.id === updatedClient.id ? updatedClient : c));
       setManageAccessClient(null);
   };
@@ -61,79 +58,77 @@ export const Portal = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+    <div className="p-4 md:p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
-                    <Shield className="w-8 h-8 text-primary-500" /> Client Portal Access
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    <Shield className="w-6 h-6 text-primary-500" /> Client Portal Access
                 </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 mt-2 max-w-2xl">
-                    Manage client login credentials and simulate client access. Clients can log in to view their dashboard and leads using the credentials you set here.
-                </p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Manage portal credentials and impersonate client views.</p>
             </div>
             
-             <div className="relative w-full md:w-64">
+            <div className="relative w-full md:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <input 
                     type="text" 
                     placeholder="Search clients..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/5 rounded-xl text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-primary-500/50 transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/5 rounded-xl text-sm focus:outline-none focus:border-primary-500"
                 />
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
             {filteredClients.map(client => (
-                <GlassCard key={client.id} className="p-5 flex flex-col gap-4 group hover:border-primary-500/30 transition-all">
-                    <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                             <div className="w-14 h-14 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 overflow-hidden shrink-0">
-                                 <img src={client.logo} alt={client.name} className="w-full h-full object-cover" />
-                             </div>
-                             <div>
-                                 <h3 className="font-bold text-zinc-900 dark:text-white text-lg">{client.name}</h3>
-                                 <div className="flex items-center gap-2 mt-1">
-                                    <Badge color={client.status === 'active' ? 'primary' : 'zinc'}>{client.status}</Badge>
-                                    {client.portal_access?.is_enabled && (
-                                        <div className="flex items-center gap-1 text-[10px] text-green-500 font-bold uppercase tracking-wide bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
-                                            <Shield className="w-3 h-3" /> Access
-                                        </div>
-                                    )}
-                                 </div>
-                             </div>
-                         </div>
-                         <button 
+                <GlassCard key={client.id} className="p-4 flex flex-col md:flex-row items-center gap-4 group hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
+                    
+                    <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                        <img src={client.logo} alt={client.name} className="w-full h-full object-cover" />
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-center md:text-left">
+                        <h3 className="font-bold text-zinc-900 dark:text-white truncate">{client.name}</h3>
+                        <div className="flex items-center justify-center md:justify-start gap-2 mt-1">
+                            {client.portal_access?.is_enabled ? (
+                                <Badge color="primary">Portal Active</Badge>
+                            ) : (
+                                <Badge color="zinc">Portal Inactive</Badge>
+                            )}
+                            <span className="text-xs text-zinc-500">{client.email}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <GlassButton 
+                            variant="secondary" 
                             onClick={() => openManageAccess(client)}
-                            className="p-2 text-zinc-400 hover:text-primary-500 hover:bg-primary-500/10 rounded-lg transition-colors"
-                            title="Manage Portal Credentials"
-                         >
-                             <Key className="w-4 h-4" />
-                         </button>
+                            className="flex-1 md:flex-none justify-center text-xs h-9"
+                        >
+                            <Key className="w-3 h-3" /> Credentials
+                        </GlassButton>
+                        <GlassButton 
+                            onClick={() => handleLoginAsClient(client.id)}
+                            className="flex-1 md:flex-none justify-center text-xs h-9 shadow-lg shadow-primary-500/10"
+                            disabled={!client.portal_access?.is_enabled}
+                        >
+                            <LayoutDashboard className="w-3 h-3" /> Login as Client
+                        </GlassButton>
                     </div>
 
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 space-y-1 py-3 border-t border-b border-zinc-100 dark:border-white/5">
-                        <div className="flex items-center gap-2">
-                            <User className="w-3 h-3" /> {client.contact_person || 'No contact'}
-                        </div>
-                        <div className="flex items-center gap-2">
-                             <span className="font-mono">{client.email || 'No email'}</span>
-                        </div>
-                    </div>
-
-                    <GlassButton 
-                        onClick={() => handleLoginAsClient(client.id)}
-                        className="w-full justify-between mt-auto group-hover:bg-primary-500 group-hover:text-white group-hover:border-primary-500"
-                    >
-                        Login as Client <ArrowRight className="w-4 h-4" />
-                    </GlassButton>
                 </GlassCard>
             ))}
+
+            {filteredClients.length === 0 && (
+                <div className="text-center py-12 text-zinc-500">
+                    No clients found.
+                </div>
+            )}
         </div>
 
         {/* MANAGE ACCESS MODAL */}
-        <Modal isOpen={!!manageAccessClient} onClose={() => setManageAccessClient(null)} title="Manage Portal Access">
+        <Modal isOpen={!!manageAccessClient} onClose={() => setManageAccessClient(null)} title="Portal Access">
             {manageAccessClient && (
                 <form onSubmit={handleSaveAccess} className="space-y-6">
                     <div className="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-white/5">
@@ -142,15 +137,14 @@ export const Portal = () => {
                         </div>
                         <div>
                             <h4 className="font-semibold text-zinc-900 dark:text-white">{manageAccessClient.name}</h4>
-                            <p className="text-xs text-zinc-500">Configure login credentials for this client.</p>
+                            <p className="text-xs text-zinc-500">Login credentials for client portal.</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 border border-zinc-200 dark:border-white/10 rounded-xl">
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium text-zinc-900 dark:text-white">Enable Portal Access</span>
-                                <span className="text-xs text-zinc-500">Allow client to log in.</span>
+                                <span className="text-sm font-medium text-zinc-900 dark:text-white">Enable Access</span>
                             </div>
                             <Toggle 
                                 checked={accessForm.is_enabled} 
@@ -165,7 +159,6 @@ export const Portal = () => {
                                 type="email"
                                 value={accessForm.email}
                                 onChange={(e) => setAccessForm({...accessForm, email: e.target.value})}
-                                placeholder="client@company.com"
                                 required={accessForm.is_enabled}
                             />
                             
@@ -176,7 +169,6 @@ export const Portal = () => {
                                     type={showPassword ? "text" : "password"}
                                     value={accessForm.password}
                                     onChange={(e) => setAccessForm({...accessForm, password: e.target.value})}
-                                    placeholder="••••••••"
                                     required={accessForm.is_enabled}
                                 />
                                 <button 
@@ -194,6 +186,7 @@ export const Portal = () => {
                 </form>
             )}
         </Modal>
+
     </div>
   );
 };

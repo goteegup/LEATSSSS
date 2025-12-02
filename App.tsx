@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from 'react';
 import { Layout, HashRouter, Routes, Route, Navigate, useNavigate } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -8,6 +7,7 @@ import { Clients } from './pages/Clients';
 import { ClientDetail } from './pages/ClientDetail';
 import { Settings } from './pages/Settings';
 import { Portal } from './pages/Portal';
+import { Templates } from './pages/Templates';
 import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/AuthPage';
 import { getWorkspaceSettings } from './services/dataService';
@@ -84,6 +84,7 @@ function App() {
         
         {/* Admin Tools */}
         <Route path="/portal" element={<Layout><Portal /></Layout>} />
+        <Route path="/templates" element={<Layout><Templates /></Layout>} />
         <Route path="/settings" element={<Layout><Settings /></Layout>} />
 
         {/* Fallback to Landing Page */}

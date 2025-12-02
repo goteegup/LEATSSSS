@@ -1,5 +1,3 @@
-
-
 export type FieldType = 'text' | 'number' | 'date' | 'select' | 'email' | 'tel' | 'currency';
 
 export type Visibility = 'internal' | 'public';
@@ -44,7 +42,7 @@ export interface WorkspaceSettings {
   language: 'en' | 'de';
   theme: 'dark' | 'light';
   onboarding_complete: boolean;
-  tour_completed: boolean; // NEW: Track if user has finished the guided tour
+  tour_completed: boolean; 
 }
 
 export interface PipelineStage {
@@ -69,7 +67,9 @@ export interface SlackConfig {
     events: {
         new_lead: NotificationTemplate;
         won_deal: NotificationTemplate;
-        stale_lead?: NotificationTemplate;
+        appointment_booked: NotificationTemplate; // NEW
+        lead_lost: NotificationTemplate; // NEW
+        lead_unreachable: NotificationTemplate; // NEW
     };
 }
 
@@ -79,6 +79,8 @@ export interface EmailConfig {
     events: {
         new_lead_alert: boolean;
         daily_digest: boolean;
+        appointment_confirmation_customer: boolean; // NEW
+        won_deal_alert: boolean; // NEW
     };
 }
 
@@ -99,6 +101,13 @@ export interface IntegrationSettings {
     meta: MetaCapiConfig;
 }
 
+export interface ClientViewConfig {
+    show_dashboard: boolean;
+    show_kanban: boolean;
+    show_list: boolean;
+    show_kpi: boolean;
+}
+
 // -------------------------
 
 export interface CampaignSettings {
@@ -109,7 +118,8 @@ export interface CampaignSettings {
   card_field_order: string[]; 
   card_primary_field: string; 
   discovered_fields?: string[]; 
-  integrations?: IntegrationSettings; 
+  integrations?: IntegrationSettings;
+  client_view: ClientViewConfig; // NEW: Controls what the client user sees
 }
 
 export interface Lead {
@@ -157,6 +167,7 @@ export interface Client {
       email?: string;
       password?: string;
       is_enabled: boolean;
+      can_view_dashboard?: boolean; // Controls dashboard visibility for this client
   };
 }
 
