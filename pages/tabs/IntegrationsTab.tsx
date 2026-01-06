@@ -67,6 +67,7 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ campaign, onUp
   const [editingTemplate, setEditingTemplate] = useState<{ type: EventType, template: string } | null>(null);
 
   const integrations = { ...DEFAULT_INTEGRATIONS, ...campaign.settings.integrations };
+  // Deep merge events to ensure all keys exist
   integrations.slack.events = { ...DEFAULT_INTEGRATIONS.slack.events, ...integrations.slack.events };
   integrations.email.events = { ...DEFAULT_INTEGRATIONS.email.events, ...integrations.email.events };
 
@@ -82,7 +83,8 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ campaign, onUp
 
   const handleSlackConnect = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate API connect
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const newSlack = {
           ...integrations.slack,
           enabled: true,

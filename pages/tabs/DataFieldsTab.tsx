@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Campaign, SYSTEM_FIELDS, CustomFieldDefinition, FieldType } from '../../types';
 import { updateCampaignSettings } from '../../services/dataService';
 import { GlassButton, Toggle, GlassInput, GlassCard } from '../../components/ui/Glass';
 import { Modal } from '../../components/ui/Modal';
-import { Database, Plus, Trash2, Type, GripVertical, Heading, MousePointer2, XCircle, LayoutTemplate, DollarSign, Mail, Phone, Activity } from 'lucide-react';
+import { Database, Plus, Trash2, Type, GripVertical, Heading, MousePointer2, XCircle, LayoutTemplate, DollarSign, Mail, Phone, Activity, Zap } from 'lucide-react';
+import { InfoTooltip } from '../../components/ui/Tooltip';
 
 interface DataFieldsTabProps {
   campaign: Campaign;
@@ -122,7 +122,7 @@ export const DataFieldsTab: React.FC<DataFieldsTabProps> = ({ campaign, onUpdate
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Fields</h2>
+                    <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Lead Fields</h2>
                     <p className="text-sm text-zinc-500">Define what data you collect.</p>
                 </div>
                 <GlassButton onClick={() => setIsModalOpen(true)} className="px-3 h-9 text-xs"><Plus className="w-3 h-3 mr-1"/> Create</GlassButton>
@@ -134,7 +134,18 @@ export const DataFieldsTab: React.FC<DataFieldsTabProps> = ({ campaign, onUpdate
                     <div key={f.key} className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-white/10">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg"><Database className="w-4 h-4 text-zinc-500"/></div>
-                            <div><div className="font-medium text-zinc-900 dark:text-white text-sm">{f.name}</div></div>
+                            <div>
+                                <div className="font-medium text-zinc-900 dark:text-white text-sm flex items-center gap-2">
+                                    {f.name}
+                                    {f.key === 'revenue' && (
+                                        <InfoTooltip content="Syncs automatically to Meta CAPI as 'Purchase' Value.">
+                                            <div className="p-0.5 bg-amber-500/10 rounded border border-amber-500/20">
+                                                <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                            </div>
+                                        </InfoTooltip>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                         <Toggle checked={campaign.settings.active_system_fields.includes(f.key)} onChange={() => toggleActive(0, true, f.key)} />
                     </div>
@@ -224,7 +235,7 @@ export const DataFieldsTab: React.FC<DataFieldsTabProps> = ({ campaign, onUpdate
                                 if (!details) return null;
                                 return (
                                     <div 
-                                        key={key}
+                                        key={key} 
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, key)}
                                         onDragOver={(e) => e.preventDefault()}

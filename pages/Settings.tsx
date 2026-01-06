@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { getWorkspaceSettings, updateWorkspaceSettings } from '../services/dataService';
 import { WorkspaceSettings } from '../types';
 import { GlassCard, GlassButton } from '../components/ui/Glass';
-import { Palette, Globe, Link as LinkIcon, Image as ImageIcon, Save, Moon, Sun, Monitor, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Palette, Globe, Link as LinkIcon, Image as ImageIcon, Save, Moon, Sun, Monitor, RefreshCw, AlertTriangle, DollarSign } from 'lucide-react';
 
 const PRESET_COLORS = [
     { name: 'Teal', value: '20 184 166', class: 'bg-teal-500' },
@@ -11,6 +11,14 @@ const PRESET_COLORS = [
     { name: 'Violet', value: '139 92 246', class: 'bg-violet-500' },
     { name: 'Rose', value: '244 63 94', class: 'bg-rose-500' },
     { name: 'Amber', value: '245 158 11', class: 'bg-amber-500' },
+];
+
+const CURRENCIES = [
+    { label: 'Euro (€)', value: '€' },
+    { label: 'US Dollar ($)', value: '$' },
+    { label: 'Pound (£)', value: '£' },
+    { label: 'Swiss Franc (CHF)', value: 'CHF' },
+    { label: 'Yen (¥)', value: '¥' },
 ];
 
 export const Settings = () => {
@@ -122,6 +130,20 @@ export const Settings = () => {
                         onChange={(e) => setSettings({ ...settings, agency_name: e.target.value })}
                         className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-primary-500/50"
                     />
+                </div>
+                {/* Currency Selector */}
+                <div>
+                    <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Preferred Currency</label>
+                    <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <select 
+                            value={settings.currency}
+                            onChange={(e) => updateSetting('currency', e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-white/10 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:border-primary-500/50 appearance-none"
+                        >
+                            {CURRENCIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
             

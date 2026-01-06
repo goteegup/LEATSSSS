@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { GlassCard } from '../ui/Glass';
 import { Users, Calendar, CheckCircle2, DollarSign, Wallet, TrendingUp } from 'lucide-react';
+import { getWorkspaceSettings } from '../../services/dataService';
 
 interface KpiGridProps {
     stats: {
@@ -17,7 +18,12 @@ interface KpiGridProps {
 }
 
 export const KpiGrid: React.FC<KpiGridProps> = ({ stats, showRoas = false, columns = 5 }) => {
-    
+    const [currency, setCurrency] = useState('€');
+
+    useEffect(() => {
+        getWorkspaceSettings().then(s => setCurrency(s.currency));
+    }, []);
+
     // Derived Rates
     const conversionRate = stats.leads > 0 ? ((stats.sales / stats.leads) * 100).toFixed(1) : '0';
     const apptRate = stats.leads > 0 ? ((stats.appointments / stats.leads) * 100).toFixed(1) : '0';
@@ -86,7 +92,7 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ stats, showRoas = false, colum
                     </div>
                     <TrendingUp className="w-3 h-3 text-green-500" />
                 </div>
-                <p className="text-2xl font-bold text-zinc-900 dark:text-white">${stats.revenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-zinc-900 dark:text-white">{currency}{stats.revenue.toLocaleString()}</p>
             </GlassCard>
 
             {/* Spend (or ROAS) */}
@@ -100,7 +106,7 @@ export const KpiGrid: React.FC<KpiGridProps> = ({ stats, showRoas = false, colum
                             <span className="text-xs font-semibold uppercase tracking-wider">Spend</span>
                         </div>
                     </div>
-                    <p className="text-2xl font-bold text-zinc-900 dark:text-white">${stats.spend.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-zinc-900 dark:text-white">{currency}{stats.spend.toLocaleString()}</p>
                 </GlassCard>
             )}
         </div>

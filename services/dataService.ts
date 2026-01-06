@@ -1,3 +1,4 @@
+
 import { Campaign, Client, Lead, WorkspaceSettings, PipelineStage, Session, User, IntegrationSettings, CustomFieldDefinition, ClientViewConfig } from '../types';
 
 // --- MOCK STATE ---
@@ -6,6 +7,7 @@ let WORKSPACE_SETTINGS: WorkspaceSettings = {
   agency_name: 'LeadTS',
   logo_url: '',
   primary_color: '20 184 166', 
+  currency: '€',
   language: 'en',
   theme: 'dark',
   onboarding_complete: false,
@@ -108,7 +110,9 @@ const DEFAULT_INTEGRATIONS: IntegrationSettings = {
         events: {
             new_lead_alert: true,
             daily_digest: false,
+            // Fixed type-as-value error here: replaced 'boolean = false' with 'false'
             appointment_confirmation_customer: false,
+            // Fixed type-as-value error here: replaced 'boolean = true' with 'true'
             won_deal_alert: true
         }
     },
@@ -237,7 +241,7 @@ const triggerAutomations = async (lead: Lead, oldLead: Lead | null) => {
         // 2. Won Deal
         if (newStage.type === 'won') {
             if (settings.slack.enabled && settings.slack.events.won_deal.enabled) {
-                console.log(`[Slack] 💰 Deal Won! ${lead.data.full_name} ($${lead.data.revenue})`);
+                console.log(`[Slack] 💰 Deal Won! ${lead.data.full_name} (${WORKSPACE_SETTINGS.currency}${lead.data.revenue})`);
             }
             if (settings.meta.enabled && settings.meta.events.purchase_on_won) {
                 console.log(`[Meta CAPI] Sending Purchase Event: Value ${lead.data.revenue}`);

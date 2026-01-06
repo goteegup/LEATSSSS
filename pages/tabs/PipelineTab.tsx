@@ -4,7 +4,7 @@ import { Campaign, PipelineStage } from '../../types';
 import { updateCampaignSettings } from '../../services/dataService';
 import { GlassCard, GlassButton, Badge } from '../../components/ui/Glass';
 import { Modal } from '../../components/ui/Modal';
-import { GripVertical, Plus, Edit2, Trash2, CheckCircle2, XCircle, Calendar, Flag } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, XCircle, Calendar, Flag, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface PipelineTabProps {
   campaign: Campaign;
@@ -17,6 +17,9 @@ export const PipelineTab: React.FC<PipelineTabProps> = ({ campaign, onUpdate }) 
   const [newStageName, setNewStageName] = useState('');
   const [newStageType, setNewStageType] = useState<PipelineStage['type']>('standard');
 
+  // Derived sorted list for rendering
+  const sortedStages = [...campaign.settings.pipeline_stages].sort((a, b) => a.order - b.order);
+
   const handleUpdateStage = async (updatedStage: PipelineStage) => {
     const newStages = campaign.settings.pipeline_stages.map(s => 
         s.id === updatedStage.id ? updatedStage : s
@@ -28,8 +31,33 @@ export const PipelineTab: React.FC<PipelineTabProps> = ({ campaign, onUpdate }) 
 
   const handleDeleteStage = async (stageId: string) => {
       if(!confirm("Are you sure? Leads in this stage will be hidden.")) return;
-      const newStages = campaign.settings.pipeline_stages.filter(s => s.id !== stageId);
-      const updated = await updateCampaignSettings(campaign.id, { ...campaign.settings, pipeline_stages: newStages });
+      // Filter out and re-index orders
+      const remainingStages = campaign.settings.pipeline_stages
+        .filter(s => s.id !== stageId)
+        .sort((a, b) => a.order - b.order)
+        .map((s, i) => ({ ...s, order: i }));
+
+      const updated = await updateCampaignSettings(campaign.id, { ...campaign.settings, pipeline_stages: remainingStages });
+      onUpdate(updated);
+  };
+
+  const handleMoveStage = async (index: number, direction: 'up' | 'down') => {
+      const newStagesList = [...sortedStages];
+      
+      if (direction === 'up' && index > 0) {
+          // Swap with previous
+          [newStagesList[index], newStagesList[index - 1]] = [newStagesList[index - 1], newStagesList[index]];
+      } else if (direction === 'down' && index < newStagesList.length - 1) {
+          // Swap with next
+          [newStagesList[index], newStagesList[index + 1]] = [newStagesList[index + 1], newStagesList[index]];
+      } else {
+          return;
+      }
+
+      // Reassign order based on new array position to ensure consistency
+      const reordered = newStagesList.map((s, i) => ({ ...s, order: i }));
+      
+      const updated = await updateCampaignSettings(campaign.id, { ...campaign.settings, pipeline_stages: reordered });
       onUpdate(updated);
   };
 
@@ -84,12 +112,31 @@ export const PipelineTab: React.FC<PipelineTabProps> = ({ campaign, onUpdate }) 
       </div>
 
       <div className="space-y-3">
-        {campaign.settings.pipeline_stages.sort((a,b) => a.order - b.order).map((stage) => (
+        {sortedStages.map((stage, index) => (
             <GlassCard key={stage.id} className="p-4 flex items-center gap-4 group hover:bg-zinc-50 dark:hover:bg-zinc-900/80 transition-all">
-                <div className="text-zinc-400 cursor-grab active:cursor-grabbing"><GripVertical className="w-5 h-5" /></div>
+                
+                {/* Reordering Controls */}
+                <div className="flex flex-col gap-1">
+                    <button 
+                        onClick={() => handleMoveStage(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-zinc-400 hover:text-primary-500 hover:bg-zinc-100 dark:hover:bg-white/10 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        title="Move Up"
+                    >
+                        <ChevronUp className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => handleMoveStage(index, 'down')}
+                        disabled={index === sortedStages.length - 1}
+                        className="p-1 text-zinc-400 hover:text-primary-500 hover:bg-zinc-100 dark:hover:bg-white/10 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        title="Move Down"
+                    >
+                        <ChevronDown className="w-4 h-4" />
+                    </button>
+                </div>
                 
                 {/* Color Dot */}
-                <div className={`w-3 h-3 rounded-full ${stage.color} ring-2 ring-white dark:ring-zinc-900`} />
+                <div className={`w-3 h-3 rounded-full ${stage.color} ring-2 ring-white dark:ring-zinc-900 shadow-sm`} />
                 
                 <div className="flex-1">
                     {editingStage?.id === stage.id ? (

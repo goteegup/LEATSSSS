@@ -1,3 +1,4 @@
+
 export type FieldType = 'text' | 'number' | 'date' | 'select' | 'email' | 'tel' | 'currency';
 
 export type Visibility = 'internal' | 'public';
@@ -39,6 +40,7 @@ export interface WorkspaceSettings {
   agency_name: string;
   logo_url: string;
   primary_color: string; // RGB string "20 184 166"
+  currency: string; // e.g. "€", "$", "CHF"
   language: 'en' | 'de';
   theme: 'dark' | 'light';
   onboarding_complete: boolean;
